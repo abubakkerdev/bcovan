@@ -8,8 +8,8 @@ const apiGetRequestValidation = require("../../../middleware/backend/apiGetReque
 
 const _ = express.Router();
 
-_.get("/all", allProduct);
-_.get("/view/:id", viewProduct);
+_.get("/all", apiGetRequestValidation, allProduct);
+_.get("/view/:id", apiGetRequestValidation, viewProduct);
 
 module.exports = _;
 

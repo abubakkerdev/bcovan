@@ -7,6 +7,6 @@ const apiGetRequestValidation = require("../../../middleware/backend/apiGetReque
 
 const _ = express.Router();
 
-_.get("/all", allTag);
+_.get("/all", apiGetRequestValidation, allTag);
 
 module.exports = _;

@@ -7,7 +7,7 @@ const apiGetRequestValidation = require("../../../middleware/backend/apiGetReque
 
 const _ = express.Router();
 
-_.get("/all", allBrand);
+_.get("/all", apiGetRequestValidation, allBrand);
 // _.post("/store", apiPostRequestValidation, storeBrand);
 
 // _.post(

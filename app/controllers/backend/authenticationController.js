@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 const sendEmail = require("../../utils/emailSend");
 const bcrypt = require("bcrypt");
 const emailConfirmTemplate = require("../../utils/confirmEmailTemplate");
-const forgotEmailTemplate = require("../../utils/ForgotEmailTemplate");
+const forgotEmailTemplate = require("../../utils/forgotEmailTemplate");
 const saltRounds = 11;
 
 const handleAuth = (req, res) => {
