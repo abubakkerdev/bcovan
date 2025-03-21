@@ -3,12 +3,12 @@ const express = require("express");
 const rateLimit = require("express-rate-limit");
 const cookieParser = require("cookie-parser");
 const multer = require("multer");
-const socketIo = require("socket.io");
+// const socketIo = require("socket.io");
 const databaseConnect = require("./app/database/mongodb");
 const routes = require("./app/routes");
 const http = require("http");
 const cors = require("cors");
-const corsPermission = require("./app/config/backend/corsConfig");
+// const corsPermission = require("./app/config/backend/corsConfig");
 const app = express();
 const port = process.env.APP_PORT;
 const server = http.createServer(app);
@@ -22,8 +22,18 @@ app.enable("case sensitive routing");
 app.use(express.json({ limit: "100mb" }));
 app.use(express.urlencoded({ limit: "100mb", extended: true }));
 
+const corsOptions = {
+  origin: [
+    "https://scovan.vercel.app",
+    "https://covan.vercel.app",
+    "http://localhost:5173",
+    "http://localhost:3000",
+  ],
+  optionsSuccessStatus: 200,
+};
+
 // Cors site permission
-app.use(cors(corsPermission));
+app.use(cors(corsOptions));
 
 // Using cookie-parser middleware with a secret key
 app.use(cookieParser(cookieSecretKey));
@@ -38,15 +48,19 @@ const limiter = rateLimit({
 // Apply the rate limiter to all requests
 app.use(limiter);
 
-const io = socketIo(server, {
-  cors: {
-    origin: ["https://jomaas-admin-panel.vercel.app", "http://localhost:5173"],
-  },
-});
 
-io.on("connection", function (socket) {
-  socketConnection(io, socket);
-});
+
+// const io = socketIo(server, {
+//   cors: {
+//     origin: ["https://jomaas-admin-panel.vercel.app", "http://localhost:5173"],
+//   },
+// });
+
+// io.on("connection", function (socket) {
+//   socketConnection(io, socket);
+// });
+
+
 
 // All request data format is JSON
 app.use(express.json());

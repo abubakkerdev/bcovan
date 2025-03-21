@@ -63,14 +63,14 @@ const handleEmailVerify = (req, res) => {
     async (err, decoded) => {
       if (err) {
         return res.redirect(
-          "http://localhost:5173/emailconfirm?error=nofound&id=1682208000-1687456800"
+          "https://scovan.vercel.app/emailconfirm?error=nofound&id=1682208000-1687456800"
         );
       } else {
         const userInfo = await userModel.find({ email: decoded.id });
 
         if (userInfo.length !== 0 && userInfo[0].emailVerified) {
           return res.redirect(
-            `http://localhost:5173/emailconfirm?success=done&id=${decoded.iat}-${decoded.exp}`
+            `https://scovan.vercel.app/emailconfirm?success=done&id=${decoded.iat}-${decoded.exp}`
           );
         } else if (userInfo.length !== 0 && !userInfo[0].emailVerified) {
           await userModel.findOneAndUpdate(
@@ -79,7 +79,7 @@ const handleEmailVerify = (req, res) => {
             { new: true }
           );
           return res.redirect(
-            `http://localhost:5173/emailconfirm?email=verify&id=${decoded.iat}-${decoded.exp}`
+            `https://scovan.vercel.app/emailconfirm?email=verify&id=${decoded.iat}-${decoded.exp}`
           );
         }
       }
@@ -239,12 +239,12 @@ const handleTokenVerify = (req, res) => {
     { algorithm: "HS384" },
     async (err, decoded) => {
       if (err) {
-        return res.redirect("http://localhost:5173/forgot-error");
+        return res.redirect("https://scovan.vercel.app/forgot-error");
       } else {
         const userInfo = await userModel.find({ email: decoded.email });
         if (userInfo.length !== 0 && userInfo[0].emailVerified) {
           return res.redirect(
-            `http://localhost:5173/change-password/${userInfo[0].forgotToken}`
+            `https://scovan.vercel.app/change-password/${userInfo[0].forgotToken}`
           );
         }
       }
@@ -262,7 +262,7 @@ const handleChangePassword = (req, res) => {
     { algorithm: "HS384" },
     async (err, decoded) => {
       if (err) {
-        return res.redirect("http://localhost:5173/login");
+        return res.redirect("https://scovan.vercel.app/login");
       } else {
         const userInfo = await userModel.find({ email: decoded.email });
 
