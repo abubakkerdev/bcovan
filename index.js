@@ -49,8 +49,6 @@ const limiter = rateLimit({
 // Apply the rate limiter to all requests
 app.use(limiter);
 
-
-
 // const io = socketIo(server, {
 //   cors: {
 //     origin: ["https://jomaas-admin-panel.vercel.app", "http://localhost:5173"],
@@ -60,8 +58,6 @@ app.use(limiter);
 // io.on("connection", function (socket) {
 //   socketConnection(io, socket);
 // });
-
-
 
 // All request data format is JSON
 app.use(express.json());
@@ -75,8 +71,14 @@ databaseConnect();
 //   express.static(`${__dirname}/public/images`)
 // );
 
-app.use('/api/v1/frontend/public/images', express.static(path.join(__dirname, 'public/images')));
+// app.use('/api/v1/frontend/public/images', express.static(path.join(__dirname, 'public/images')));
 
+app.use(
+  "/api/v1/frontend/public/images",
+  express.static(path.join(__dirname, "public/images"), {
+    maxAge: "300d", // Cache for 1 day
+  })
+);
 
 // All api route
 app.use(routes);
