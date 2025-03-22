@@ -1,4 +1,5 @@
 require("dotenv").config();
+const path = require("node:path");
 const express = require("express");
 const rateLimit = require("express-rate-limit");
 const cookieParser = require("cookie-parser");
@@ -69,10 +70,13 @@ app.use(express.json());
 databaseConnect();
 
 // Access all Images
-app.use(
-  `${urlImage}/frontend/public/images`,
-  express.static(`${__dirname}/public/images`)
-);
+// app.use(
+//   `${urlImage}/frontend/public/images`,
+//   express.static(`${__dirname}/public/images`)
+// );
+
+app.use('/api/v1/frontend/public/images', express.static(path.join(__dirname, 'public/images')));
+
 
 // All api route
 app.use(routes);
