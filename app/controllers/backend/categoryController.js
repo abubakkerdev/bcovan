@@ -54,7 +54,7 @@ const handleDestroyCategory = async (req, res) => {
   const { _id } = req.body;
 
   try {
-    await categoryModel.findByIdAndDelete({ _id: _id });
+    await categoryModel.findOneAndDelete({ _id: _id });
     return res.send({
       success: {
         message: "Data deleted successfully!",
