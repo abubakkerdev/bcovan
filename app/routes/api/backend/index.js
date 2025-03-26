@@ -8,6 +8,7 @@ const tagRoutes = require("./tag");
 const capacityRoutes = require("./capacity");
 const colorRoutes = require("./color");
 const productRoutes = require("./product");
+const orderRoutes = require("./order");
 
 _.use("/authentication", authenticationRoutes);
 _.use("/customer", customerRoutes);
@@ -17,5 +18,6 @@ _.use("/tag", tagRoutes);
 _.use("/capacity", capacityRoutes);
 _.use("/color", colorRoutes);
 _.use("/product", productRoutes);
+_.use("/order", orderRoutes);
 
 module.exports = _;
