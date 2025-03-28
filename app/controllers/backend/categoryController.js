@@ -1,13 +1,18 @@
 const categoryModel = require("../../models/category");
+const productModel = require("../../models/product");
 
 const handleAllCategory = async (req, res) => {
-  const categories = await categoryModel.find(
-    {},
-    {
-      createdAt: 0,
-      updatedAt: 0,
-    }
-  );
+  const categories = await categoryModel
+    .find({})
+    .populate({
+      path: "subCategoryId",
+      select: "_id subCategory childrenCategory",
+    })
+    .select({
+      categoryName: 1,
+      subCategoryId: 1,
+    })
+    .sort({ createdAt: -1 });
 
   if (categories.length > 0) {
     return res.send({
@@ -52,6 +57,18 @@ const handleStoreCategory = async (req, res) => {
 
 const handleDestroyCategory = async (req, res) => {
   const { _id } = req.body;
+
+  await productModel.updateMany(
+    { categoryId: _id },
+    {
+      $set: {
+        productStatus: "inactive",
+        categoryId: null,
+        subcategoryId: null,
+        childrenCategory: "",
+      },
+    }
+  );
 
   try {
     await categoryModel.findOneAndDelete({ _id: _id });

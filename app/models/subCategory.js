@@ -12,6 +12,12 @@ const subCategorySchema = new Schema(
       ref: "Category",
       required: true,
     },
+    productId: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Product",
+      },
+    ],
     childrenCategory: [
       {
         type: Map,

@@ -1,6 +1,7 @@
 const productModel = require("../../models/product");
 const brandModel = require("../../models/brand");
 const categoryModel = require("../../models/category");
+const subCategoryModel = require("../../models/subCategory");
 const capacityModel = require("../../models/capacity");
 const colorModel = require("../../models/color");
 const tagModel = require("../../models/tag");
@@ -35,6 +36,7 @@ const handleAllInfoProduct = async (req, res) => {
     .find({})
     .populate({ path: "brandId", select: "_id brandName" })
     .populate({ path: "categoryId", select: "_id categoryName" })
+    .populate({ path: "subcategoryId", select: "_id subCategory" })
     .populate({ path: "colorId", select: "_id colorName" })
     .populate({ path: "capacityId", select: "_id capacityName" })
     .populate({ path: "tagId", select: "_id tagName" })
@@ -43,9 +45,12 @@ const handleAllInfoProduct = async (req, res) => {
       amount: 1,
       sku: 1,
       categoryId: 1,
+      subcategoryId: 1,
+      childrenCategory: 1,
       tagId: 1,
       brandId: 1,
       colorId: 1,
+      productStatus: 1,
       capacityId: 1,
       imageArray: 1,
     })
@@ -74,6 +79,7 @@ const handleViewProduct = async (req, res) => {
     .find({ _id: id })
     .populate({ path: "brandId", select: "_id brandName" })
     .populate({ path: "categoryId", select: "_id categoryName" })
+    .populate({ path: "subcategoryId", select: "_id subCategory" })
     .populate({ path: "colorId", select: "_id colorName" })
     .populate({ path: "capacityId", select: "_id capacityName" })
     .populate({ path: "tagId", select: "_id tagName" })
@@ -85,9 +91,12 @@ const handleViewProduct = async (req, res) => {
       amount: 1,
       sku: 1,
       categoryId: 1,
+      subcategoryId: 1,
+      childrenCategory: 1,
       tagId: 1,
       brandId: 1,
       colorId: 1,
+      productStatus: 1,
       capacityId: 1,
       imageArray: 1,
       moreProduct: 1,
@@ -126,6 +135,8 @@ const handleViewProduct = async (req, res) => {
       amount: productView[0].amount,
       sku: productView[0].sku,
       categoryId: productView[0].categoryId,
+      subcategoryId: productView[0].subcategoryId,
+      childrenCategory: productView[0].childrenCategory,
       tagId: productView[0].tagId,
       brandId: productView[0].brandId,
       colorId: productView[0].colorId,
@@ -161,6 +172,7 @@ const handleEditProduct = async (req, res) => {
     .find({ _id: id })
     .populate({ path: "brandId", select: "_id brandName" })
     .populate({ path: "categoryId", select: "_id categoryName" })
+    .populate({ path: "subcategoryId", select: "_id subCategory" })
     .populate({ path: "colorId", select: "_id colorName" })
     .populate({ path: "capacityId", select: "_id capacityName" })
     .populate({ path: "tagId", select: "_id tagName" })
@@ -171,6 +183,8 @@ const handleEditProduct = async (req, res) => {
       amount: 1,
       sku: 1,
       categoryId: 1,
+      subcategoryId: 1,
+      childrenCategory: 1,
       tagId: 1,
       brandId: 1,
       colorId: 1,
@@ -207,6 +221,8 @@ const handleStoreProduct = async (req, res) => {
     amount,
     sku,
     categoryId,
+    subcategoryId,
+    childrenCategory,
     tagId,
     brandId,
     colorId,
@@ -265,6 +281,14 @@ const handleStoreProduct = async (req, res) => {
   //   additionalInfo
   // );
 
+  // console.log(categoryId, subcategoryId, childrenCategory);
+
+  // return res.send({
+  //   success: {
+  //     message: "Product Add Successfull.",
+  //   },
+  // });
+
   const product = new productModel({
     title,
     shortDesc,
@@ -272,6 +296,8 @@ const handleStoreProduct = async (req, res) => {
     amount,
     sku,
     categoryId,
+    subcategoryId,
+    childrenCategory,
     tagId,
     brandId,
     colorId,
@@ -311,6 +337,18 @@ const handleStoreProduct = async (req, res) => {
       );
     }
 
+    await categoryModel.findByIdAndUpdate(
+      { _id: categoryId },
+      { $push: { productId: productData._id } },
+      { new: true }
+    );
+
+    await subCategoryModel.findByIdAndUpdate(
+      { _id: subcategoryId },
+      { $push: { productId: productData._id } },
+      { new: true }
+    );
+
     let updateAllTags = tagId.map(async (el) => {
       await tagModel.findByIdAndUpdate(
         { _id: el._id },
@@ -321,20 +359,7 @@ const handleStoreProduct = async (req, res) => {
       return "ok";
     });
 
-    let updateAllCategory = categoryId.map(async (el) => {
-      await categoryModel.findByIdAndUpdate(
-        { _id: el._id },
-        { $push: { productId: productData._id } },
-        { new: true }
-      );
-
-      return "ok";
-    });
-
-    if (
-      updateAllTags.length === tagId.length &&
-      updateAllCategory.length === categoryId.length
-    ) {
+    if (updateAllTags.length === tagId.length) {
       return res.send({
         success: {
           message: "Product Add Successfull.",
@@ -365,6 +390,8 @@ const handleUpdateProduct = async (req, res) => {
     amount,
     sku,
     categoryId,
+    subcategoryId,
+    childrenCategory,
     tagId,
     brandId,
     colorId,
@@ -377,12 +404,7 @@ const handleUpdateProduct = async (req, res) => {
 
   let productInfo = await productModel.find({ _id: id });
 
-  // console.log("tagId", tagId);
-  // console.log("categoryId", categoryId);
-  // console.log("brandId", brandId);
-  // console.log("colorId", colorId);
-  // console.log("capacityId", capacityId);
-
+  // console.log("tagId", productInfo[0]);
   // return res.send({
   //   success: {
   //     message: "Product Update Successfull.",
@@ -467,6 +489,36 @@ const handleUpdateProduct = async (req, res) => {
         );
       }
 
+      if (productInfo[0].categoryId) {
+        if (categoryId != productInfo[0].categoryId) {
+          await categoryModel.findByIdAndUpdate(
+            { _id: categoryId },
+            { $push: { productId: productInfo[0]._id } },
+            { new: true }
+          );
+          await categoryModel.findByIdAndUpdate(
+            { _id: productInfo[0].categoryId },
+            { $pull: { productId: productInfo[0]._id } },
+            { new: true }
+          );
+        }
+      }
+
+      if (productInfo[0].subcategoryId) {
+        if (subcategoryId != productInfo[0].subcategoryId) {
+          await subCategoryModel.findByIdAndUpdate(
+            { _id: subcategoryId },
+            { $push: { productId: productInfo[0]._id } },
+            { new: true }
+          );
+          await subCategoryModel.findByIdAndUpdate(
+            { _id: productInfo[0].subcategoryId },
+            { $pull: { productId: productInfo[0]._id } },
+            { new: true }
+          );
+        }
+      }
+
       let newTagId = tagId.map((el) => el._id);
       let oldTagId = productInfo[0].tagId.map((el) => el.toString());
       let removedTags = oldTagId.filter((tag) => !newTagId.includes(tag));
@@ -489,30 +541,6 @@ const handleUpdateProduct = async (req, res) => {
         );
       }
 
-      let newCategoryId = categoryId.map((el) => el._id);
-      let oldCategoryId = productInfo[0].categoryId.map((el) => el.toString());
-      let removedCategory = oldCategoryId.filter(
-        (cat) => !newCategoryId.includes(cat)
-      );
-
-      for (let latestCatId of newCategoryId) {
-        await categoryModel.findByIdAndUpdate(
-          { _id: latestCatId },
-          {
-            $addToSet: { productId: productInfo[0]._id }, // Add productId only if it doesn't exist
-          },
-          { new: true }
-        );
-      }
-
-      for (let rmCatId of removedCategory) {
-        await categoryModel.findByIdAndUpdate(
-          { _id: rmCatId },
-          { $pull: { productId: productInfo[0]._id } },
-          { new: true }
-        );
-      }
-
       let updatedsProductInfo = await productModel.findByIdAndUpdate(
         { _id: id },
         {
@@ -522,6 +550,8 @@ const handleUpdateProduct = async (req, res) => {
           amount,
           sku,
           categoryId,
+          subcategoryId,
+          childrenCategory,
           tagId,
           brandId,
           colorId,
@@ -530,6 +560,7 @@ const handleUpdateProduct = async (req, res) => {
           moreProduct,
           relatedProduct,
           additionalInfo,
+          productStatus: "active",
         },
         { new: true }
       );
@@ -584,6 +615,36 @@ const handleUpdateProduct = async (req, res) => {
         );
       }
 
+      if (productInfo[0].categoryId) {
+        if (categoryId != productInfo[0].categoryId) {
+          await categoryModel.findByIdAndUpdate(
+            { _id: categoryId },
+            { $push: { productId: productInfo[0]._id } },
+            { new: true }
+          );
+          await categoryModel.findByIdAndUpdate(
+            { _id: productInfo[0].categoryId },
+            { $pull: { productId: productInfo[0]._id } },
+            { new: true }
+          );
+        }
+      }
+
+      if (productInfo[0].subcategoryId) {
+        if (subcategoryId != productInfo[0].subcategoryId) {
+          await subCategoryModel.findByIdAndUpdate(
+            { _id: subcategoryId },
+            { $push: { productId: productInfo[0]._id } },
+            { new: true }
+          );
+          await subCategoryModel.findByIdAndUpdate(
+            { _id: productInfo[0].subcategoryId },
+            { $pull: { productId: productInfo[0]._id } },
+            { new: true }
+          );
+        }
+      }
+
       let newTagId = tagId.map((el) => el._id);
       let oldTagId = productInfo[0].tagId.map((el) => el.toString());
       let removedTags = oldTagId.filter((tag) => !newTagId.includes(tag));
@@ -606,30 +667,6 @@ const handleUpdateProduct = async (req, res) => {
         );
       }
 
-      let newCategoryId = categoryId.map((el) => el._id);
-      let oldCategoryId = productInfo[0].categoryId.map((el) => el.toString());
-      let removedCategory = oldCategoryId.filter(
-        (cat) => !newCategoryId.includes(cat)
-      );
-
-      for (let latestCatId of newCategoryId) {
-        await categoryModel.findByIdAndUpdate(
-          { _id: latestCatId },
-          {
-            $addToSet: { productId: productInfo[0]._id }, // Add productId only if it doesn't exist
-          },
-          { new: true }
-        );
-      }
-
-      for (let rmCatId of removedCategory) {
-        await categoryModel.findByIdAndUpdate(
-          { _id: rmCatId },
-          { $pull: { productId: productInfo[0]._id } },
-          { new: true }
-        );
-      }
-
       let updatedsProductInfo = await productModel.findByIdAndUpdate(
         { _id: id },
         {
@@ -639,6 +676,8 @@ const handleUpdateProduct = async (req, res) => {
           amount,
           sku,
           categoryId,
+          subcategoryId,
+          childrenCategory,
           tagId,
           brandId,
           colorId,
@@ -647,6 +686,7 @@ const handleUpdateProduct = async (req, res) => {
           moreProduct,
           relatedProduct,
           additionalInfo,
+          productStatus: "active",
         },
         { new: true }
       );
@@ -715,14 +755,17 @@ const handleDestroyProduct = async (req, res) => {
       return "ok";
     });
 
-    let updateAllCategory = productInfo[0].categoryId.map(async (el) => {
-      await categoryModel.findByIdAndUpdate(
-        { _id: el },
-        { $pull: { productId: productInfo[0]._id } },
-        { new: true }
-      );
-      return "ok";
-    });
+    await categoryModel.findByIdAndUpdate(
+      { _id: productInfo[0].categoryId },
+      { $pull: { productId: productInfo[0]._id } },
+      { new: true }
+    );
+
+    await subCategoryModel.findByIdAndUpdate(
+      { _id: productInfo[0].subcategoryId },
+      { $pull: { productId: productInfo[0]._id } },
+      { new: true }
+    );
 
     if (productInfo[0].moreProduct) {
       // let products = await productModel
@@ -760,10 +803,7 @@ const handleDestroyProduct = async (req, res) => {
       );
     }
 
-    if (
-      updateAllTags.length === productInfo[0].tagId.length &&
-      updateAllCategory.length === productInfo[0].categoryId.length
-    ) {
+    if (updateAllTags.length === productInfo[0].tagId.length) {
       try {
         await productModel.findByIdAndDelete({ _id: id });
         return res.send({
@@ -824,3 +864,40 @@ module.exports = {
 
 // // Example call
 // updateProduct("PRODUCT_ID_HERE", { title: "Updated Title", additionalInfo: "New Info" });
+
+// const mongoose = require("mongoose");
+
+// const productSchema = new mongoose.Schema({
+//   productInfo: [
+//     {
+//       id: { type: String, required: true },
+//       title: { type: String, required: true },
+//       price: { type: Number, required: true },
+//       quantity: { type: Number, required: true },
+//     },
+//   ],
+// });
+
+// const Product = mongoose.model("Product", productSchema);
+
+// const newProduct = new Product({
+//   productInfo: [
+//     {
+//       id: "67e2c2911d80ea3c33f71801",
+//       title: "Demo Title 1",
+//       price: 100,
+//       quantity: 2,
+//     },
+//     {
+//       id: "67e2c2911d80ea3c33f79635",
+//       title: "Demo Title 2",
+//       price: 100,
+//       quantity: 5,
+//     },
+//   ],
+// });
+
+// newProduct
+//   .save()
+//   .then(() => console.log("Data inserted successfully"))
+//   .catch((err) => console.error("Error inserting data:", err));

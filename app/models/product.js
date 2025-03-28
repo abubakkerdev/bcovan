@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
-const productSchema = new Schema( 
+const productSchema = new Schema(
   {
     title: {
       type: String,
@@ -21,18 +21,23 @@ const productSchema = new Schema(
     sku: {
       type: String,
     },
-    categoryId: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Category",
-        required: true,
-      },
-    ], 
+    categoryId: {
+      type: Schema.Types.ObjectId,
+      ref: "Category",
+      default: null,
+    },
+    subcategoryId: {
+      type: Schema.Types.ObjectId,
+      ref: "SubCategory",
+      default: null,
+    },
+    childrenCategory: {
+      type: String,
+    },
     tagId: [
       {
         type: Schema.Types.ObjectId,
         ref: "Tag",
-        required: true,
       },
     ],
     brandId: {
@@ -74,6 +79,10 @@ const productSchema = new Schema(
     ],
     additionalInfo: {
       type: String,
+    },
+    productStatus: {
+      type: String,
+      default: "active",
     },
     wishlistId: [
       {

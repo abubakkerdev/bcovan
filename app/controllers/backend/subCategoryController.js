@@ -1,5 +1,6 @@
 const categoryModel = require("../../models/category");
 const subCategoryModel = require("../../models/subCategory");
+const productModel = require("../../models/product");
 
 const handleAllSubCategory = async (req, res) => {
   const allSubCategory = await subCategoryModel
@@ -56,15 +57,64 @@ const handleStoreSubCategory = async (req, res) => {
   }
 };
 
+const handleUpdateSubCategory = async (req, res) => {
+  const { subCategoryInfo, genarateNew, regenerate } = req.body;
+
+  if (regenerate.length > 0) {
+    for (let latestData of regenerate) {
+      await productModel.updateMany(
+        { childrenCategory: latestData },
+        {
+          $set: {
+            productStatus: "inactive",
+            childrenCategory: "",
+          },
+        }
+      );
+    }
+  }
+
+  try {
+    await subCategoryModel.findByIdAndUpdate(
+      { _id: subCategoryInfo._id },
+      { $set: { childrenCategory: genarateNew } },
+      { new: true }
+    );
+
+    return res.send({
+      success: {
+        message: "Data Update successfully!",
+      },
+    });
+  } catch (err) {
+    return res.send({
+      error: {
+        message: "Failed to delete. Please try again.",
+      },
+    });
+  }
+};
+
 const handleDestroySubCategory = async (req, res) => {
   const { subCategoryInfo } = req.body;
+
+  await productModel.updateMany(
+    { subcategoryId: subCategoryInfo._id },
+    {
+      $set: {
+        productStatus: "inactive",
+        subcategoryId: null,
+        childrenCategory: "",
+      },
+    }
+  );
 
   try {
     await subCategoryModel.findByIdAndDelete({ _id: subCategoryInfo._id });
 
     await categoryModel.findByIdAndUpdate(
       { _id: subCategoryInfo.categoryId._id },
-      { $pull: { subCategoryId: subCategoryInfo._id} },
+      { $pull: { subCategoryId: subCategoryInfo._id } },
       { new: true }
     );
 
@@ -85,5 +135,6 @@ const handleDestroySubCategory = async (req, res) => {
 module.exports = {
   handleAllSubCategory,
   handleStoreSubCategory,
+  handleUpdateSubCategory,
   handleDestroySubCategory,
 };
