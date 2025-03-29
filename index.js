@@ -4,17 +4,13 @@ const express = require("express");
 const rateLimit = require("express-rate-limit");
 const cookieParser = require("cookie-parser");
 const multer = require("multer");
-// const socketIo = require("socket.io");
 const databaseConnect = require("./app/database/mongodb");
 const routes = require("./app/routes");
 const http = require("http");
 const cors = require("cors");
-// const corsPermission = require("./app/config/backend/corsConfig");
 const app = express();
 const port = process.env.APP_PORT;
 const server = http.createServer(app);
-const socketConnection = require("./app/socket/socketConnect");
-const urlImage = process.env.BASE_URL;
 const cookieSecretKey = process.env.COOKIE_SECRET_KEY;
 
 // Enable case-sensitive routing
@@ -49,16 +45,6 @@ const limiter = rateLimit({
 // Apply the rate limiter to all requests
 app.use(limiter);
 
-// const io = socketIo(server, {
-//   cors: {
-//     origin: ["https://jomaas-admin-panel.vercel.app", "http://localhost:5173"],
-//   },
-// });
-
-// io.on("connection", function (socket) {
-//   socketConnection(io, socket);
-// });
-
 // All request data format is JSON
 app.use(express.json());
 
@@ -66,19 +52,7 @@ app.use(express.json());
 databaseConnect();
 
 // Access all Images
-// app.use(
-//   `${urlImage}/frontend/public/images`,
-//   express.static(`${__dirname}/public/images`)
-// );
-
-// app.use('/api/v1/frontend/public/images', express.static(path.join(__dirname, 'public/images')));
-
-app.use(
-  "/api/v1/frontend/public/images",
-  express.static(path.join(__dirname, "public/images"), {
-    maxAge: "300d", // Cache for 1 day
-  })
-);
+app.use('/api/v1/frontend/public/images', express.static(path.join(__dirname, 'public/images')));
 
 // All api route
 app.use(routes);
