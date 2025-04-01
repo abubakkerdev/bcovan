@@ -10,6 +10,7 @@ const subcategoryRoutes = require("./subcategory");
 const colorRoutes = require("./color");
 const productRoutes = require("./product");
 const orderRoutes = require("./order");
+const testimonialRoutes = require("./testimonial");
 
 _.use("/authentication", authenticationRoutes);
 _.use("/customer", customerRoutes);
@@ -21,6 +22,7 @@ _.use("/subcategory", subcategoryRoutes);
 _.use("/color", colorRoutes);
 _.use("/product", productRoutes);
 _.use("/order", orderRoutes);
+_.use("/testimonial", testimonialRoutes);
 
 module.exports = _;
 
