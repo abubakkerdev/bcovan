@@ -4,12 +4,11 @@ const handleAllProduct = async (req, res) => {
     const page = parseInt(req.query.page) || 1; // Default page 1
     const dataview = parseInt(req.query.dataview) || 1; // Default dataview 10
     const skip = (page - 1) * dataview;
-
+  
     const allProducts = await productModel
       .find({ productStatus: "active" })
       .populate({ path: "brandId", select: "_id brandName" })
       .populate({ path: "categoryId", select: "_id categoryName" })
-      .populate({ path: "colorId", select: "_id colorName" })
       .populate({ path: "capacityId", select: "_id capacityName" })
       .populate({ path: "tagId", select: "_id tagName" })
       .select({
@@ -19,7 +18,6 @@ const handleAllProduct = async (req, res) => {
         categoryId: 1,
         tagId: 1,
         brandId: 1,
-        colorId: 1,
         capacityId: 1,
         imageArray: 1,
       })
@@ -70,7 +68,6 @@ const handleViewProduct = async (req, res) => {
     .find({ _id: id })
     .populate({ path: "brandId", select: "_id brandName" })
     .populate({ path: "categoryId", select: "_id categoryName" })
-    .populate({ path: "colorId", select: "_id colorName" })
     .populate({ path: "capacityId", select: "_id capacityName" })
     .populate({ path: "tagId", select: "_id tagName" })
     .select({
@@ -83,7 +80,6 @@ const handleViewProduct = async (req, res) => {
       categoryId: 1,
       tagId: 1,
       brandId: 1,
-      colorId: 1,
       capacityId: 1,
       imageArray: 1,
       moreProduct: 1,
@@ -121,7 +117,6 @@ const handleViewProduct = async (req, res) => {
       categoryId: productView[0].categoryId,
       tagId: productView[0].tagId,
       brandId: productView[0].brandId,
-      colorId: productView[0].colorId,
       capacityId: productView[0].capacityId,
       imageArray: productView[0].imageArray,
       moreProduct: moreProductData,

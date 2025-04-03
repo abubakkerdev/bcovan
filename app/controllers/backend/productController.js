@@ -3,7 +3,6 @@ const brandModel = require("../../models/brand");
 const categoryModel = require("../../models/category");
 const subCategoryModel = require("../../models/subCategory");
 const capacityModel = require("../../models/capacity");
-const colorModel = require("../../models/color");
 const tagModel = require("../../models/tag");
 
 const fs = require("node:fs");
@@ -37,7 +36,6 @@ const handleAllInfoProduct = async (req, res) => {
     .populate({ path: "brandId", select: "_id brandName" })
     .populate({ path: "categoryId", select: "_id categoryName" })
     .populate({ path: "subcategoryId", select: "_id subCategory" })
-    .populate({ path: "colorId", select: "_id colorName" })
     .populate({ path: "capacityId", select: "_id capacityName" })
     .populate({ path: "tagId", select: "_id tagName" })
     .select({
@@ -49,7 +47,6 @@ const handleAllInfoProduct = async (req, res) => {
       childrenCategory: 1,
       tagId: 1,
       brandId: 1,
-      colorId: 1,
       productStatus: 1,
       capacityId: 1,
       imageArray: 1,
@@ -80,7 +77,6 @@ const handleViewProduct = async (req, res) => {
     .populate({ path: "brandId", select: "_id brandName" })
     .populate({ path: "categoryId", select: "_id categoryName" })
     .populate({ path: "subcategoryId", select: "_id subCategory" })
-    .populate({ path: "colorId", select: "_id colorName" })
     .populate({ path: "capacityId", select: "_id capacityName" })
     .populate({ path: "tagId", select: "_id tagName" })
     .select({
@@ -95,7 +91,6 @@ const handleViewProduct = async (req, res) => {
       childrenCategory: 1,
       tagId: 1,
       brandId: 1,
-      colorId: 1,
       productStatus: 1,
       capacityId: 1,
       imageArray: 1,
@@ -139,7 +134,6 @@ const handleViewProduct = async (req, res) => {
       childrenCategory: productView[0].childrenCategory,
       tagId: productView[0].tagId,
       brandId: productView[0].brandId,
-      colorId: productView[0].colorId,
       capacityId: productView[0].capacityId,
       imageArray: productView[0].imageArray,
       moreProduct: moreProductData,
@@ -173,7 +167,6 @@ const handleEditProduct = async (req, res) => {
     .populate({ path: "brandId", select: "_id brandName" })
     .populate({ path: "categoryId", select: "_id categoryName" })
     .populate({ path: "subcategoryId", select: "_id subCategory" })
-    .populate({ path: "colorId", select: "_id colorName" })
     .populate({ path: "capacityId", select: "_id capacityName" })
     .populate({ path: "tagId", select: "_id tagName" })
     .select({
@@ -187,7 +180,6 @@ const handleEditProduct = async (req, res) => {
       childrenCategory: 1,
       tagId: 1,
       brandId: 1,
-      colorId: 1,
       capacityId: 1,
       imageArray: 1,
       moreProduct: 1,
@@ -225,7 +217,6 @@ const handleStoreProduct = async (req, res) => {
     childrenCategory,
     tagId,
     brandId,
-    colorId,
     capacityId,
     imageArray,
     moreProduct,
@@ -274,7 +265,6 @@ const handleStoreProduct = async (req, res) => {
   //   categoryId,
   //   tagId,
   //   brandId,
-  //   colorId,
   //   capacityId,
   //   moreProduct,
   //   relatedProduct,
@@ -300,7 +290,6 @@ const handleStoreProduct = async (req, res) => {
     childrenCategory,
     tagId,
     brandId,
-    colorId,
     capacityId,
     imageArray: newImageArr,
     moreProduct,
@@ -324,14 +313,6 @@ const handleStoreProduct = async (req, res) => {
     if (capacityId) {
       await capacityModel.findByIdAndUpdate(
         { _id: capacityId },
-        { $push: { productId: productData._id } },
-        { new: true }
-      );
-    }
-
-    if (colorId) {
-      await colorModel.findByIdAndUpdate(
-        { _id: colorId },
         { $push: { productId: productData._id } },
         { new: true }
       );
@@ -394,7 +375,6 @@ const handleUpdateProduct = async (req, res) => {
     childrenCategory,
     tagId,
     brandId,
-    colorId,
     capacityId,
     imageArray,
     moreProduct,
@@ -476,19 +456,6 @@ const handleUpdateProduct = async (req, res) => {
         );
       }
 
-      if (colorId != productInfo[0].colorId) {
-        await colorModel.findByIdAndUpdate(
-          { _id: colorId },
-          { $push: { productId: productInfo[0]._id } },
-          { new: true }
-        );
-        await colorModel.findByIdAndUpdate(
-          { _id: productInfo[0].colorId },
-          { $pull: { productId: productInfo[0]._id } },
-          { new: true }
-        );
-      }
-
       if (productInfo[0].categoryId) {
         if (categoryId != productInfo[0].categoryId) {
           await categoryModel.findByIdAndUpdate(
@@ -554,7 +521,6 @@ const handleUpdateProduct = async (req, res) => {
           childrenCategory,
           tagId,
           brandId,
-          colorId,
           capacityId,
           imageArray: newImageArr,
           moreProduct,
@@ -602,19 +568,6 @@ const handleUpdateProduct = async (req, res) => {
         );
       }
 
-      if (colorId != productInfo[0].colorId) {
-        await colorModel.findByIdAndUpdate(
-          { _id: colorId },
-          { $push: { productId: productInfo[0]._id } },
-          { new: true }
-        );
-        await colorModel.findByIdAndUpdate(
-          { _id: productInfo[0].colorId },
-          { $pull: { productId: productInfo[0]._id } },
-          { new: true }
-        );
-      }
-
       if (productInfo[0].categoryId) {
         if (categoryId != productInfo[0].categoryId) {
           await categoryModel.findByIdAndUpdate(
@@ -680,7 +633,6 @@ const handleUpdateProduct = async (req, res) => {
           childrenCategory,
           tagId,
           brandId,
-          colorId,
           capacityId,
           imageArray: productInfo[0].imageArray,
           moreProduct,
@@ -733,14 +685,6 @@ const handleDestroyProduct = async (req, res) => {
     if (productInfo[0].capacityId) {
       await capacityModel.findByIdAndUpdate(
         { _id: productInfo[0].capacityId },
-        { $pull: { productId: productInfo[0]._id } },
-        { new: true }
-      );
-    }
-
-    if (productInfo[0].colorId) {
-      await colorModel.findByIdAndUpdate(
-        { _id: productInfo[0].colorId },
         { $pull: { productId: productInfo[0]._id } },
         { new: true }
       );
@@ -827,7 +771,7 @@ const handleDestroyProduct = async (req, res) => {
     });
   }
 };
-
+ 
 module.exports = {
   handleAllProduct,
   handleAllInfoProduct,

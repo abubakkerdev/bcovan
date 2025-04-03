@@ -1,5 +1,4 @@
 const couponModel = require("../../models/coupon");
-const fs = require("node:fs");
 
 const handleAllCoupon = async (req, res) => {
   const allCoupons = await couponModel.find({}).sort({ createdAt: -1 });
@@ -183,3 +182,6 @@ module.exports = {
   handleCheckCoupon,
   handleDestroyCoupon,
 };
+
+
+
