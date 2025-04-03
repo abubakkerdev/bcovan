@@ -3,34 +3,21 @@ const { Schema } = mongoose;
 
 const customerSchema = new Schema(
   {
-    uname: {
-      type: String,
-      required: true,
-    },
-    email: {
+    phone: {
       type: String,
       required: true,
       unique: true,
     },
-    phone: {
+    uname: {
       type: String,
-      required: true,
+      default: 'User',
     },
-    date: {
-      type: String,
-      required: true,
-    },
-    subcontinents: {
-      type: String,
-      required: true,
-    },
-    imageURL: {
+    email: {
       type: String,
     },
-    description: {
+    photo: {
       type: String,
-      // minlength: [20, "Description must be at least 20 characters long."],
-      maxlength: [300, "Description cannot exceed 300 characters."],
+      default: 'user.jpg',
     },
   },
   {

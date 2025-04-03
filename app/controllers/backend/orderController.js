@@ -4,24 +4,6 @@ const handleAllOrder = async (req, res) => {
   const orderAll = await orderModel
     .find({})
     .populate({ path: "userId", select: "_id uname" })
-    .select({
-      firstName: 1,
-      lastName: 1,
-      company: 1,
-      country: 1,
-      city: 1,
-      streetAddress: 1,
-      apartment: 1,
-      phone: 1,
-      email: 1,
-      orderNotes: 1,
-      orderStatus: 1,
-      shipping: 1,
-      productInfo: 1,
-      paymentGateway: 1,
-      amount: 1,
-      userId: 1,
-    })
     .sort({ createdAt: -1 });
 
   if (orderAll.length > 0) {
@@ -42,37 +24,37 @@ const handleAllOrder = async (req, res) => {
 
 const handleStoreOrder = async (req, res) => {
   const {
-    firstName,
-    lastName,
-    company,
-    country,
-    city,
-    streetAddress,
-    apartment,
+    uname,
     phone,
+    city,
+    area,
+    address,
     email,
     orderNotes,
-    shipping,
+    shippingCharge,
+    shippingMethod,
     productInfo,
     paymentGateway,
+    totalAmount,
+    discountAmount,
     amount,
     userId,
   } = req.body;
 
   const order = new orderModel({
-    firstName,
-    lastName,
-    company,
-    country,
-    city,
-    streetAddress,
-    apartment,
+    uname,
     phone,
+    city,
+    area,
+    address,
     email,
     orderNotes,
-    shipping,
+    shippingCharge,
+    shippingMethod,
     productInfo,
     paymentGateway,
+    totalAmount,
+    discountAmount,
     amount,
     userId,
   });

@@ -2,17 +2,11 @@ const mongoose = require("mongoose");
 const { Schema } = mongoose;
 const orderSchema = new Schema(
   {
-    firstName: {
+    uname: {
       type: String,
       required: true,
     },
-    lastName: {
-      type: String,
-    },
-    company: {
-      type: String,
-    },
-    country: {
+    phone: {
       type: String,
       required: true,
     },
@@ -20,29 +14,28 @@ const orderSchema = new Schema(
       type: String,
       required: true,
     },
-    streetAddress: {
+    area: {
       type: String,
       required: true,
     },
-    apartment: {
-      type: String,
-    },
-    phone: {
+    address: {
       type: String,
       required: true,
     },
     email: {
       type: String,
-      required: true,
     },
     orderNotes: {
+      type: String,
+    },
+    shippingCharge: {
       type: String,
     },
     orderStatus: {
       type: String,
       default: "1",
     },
-    shipping: {
+    shippingMethod: {
       type: String,
       required: true,
     },
@@ -54,7 +47,15 @@ const orderSchema = new Schema(
       },
     ],
     paymentGateway: {
-      type: Boolean,
+      type: String,
+      required: true,
+    },
+    totalAmount: {
+      type: Number,
+      required: true,
+    },
+    discountAmount: {
+      type: String,
       required: true,
     },
     amount: {
@@ -63,7 +64,7 @@ const orderSchema = new Schema(
     },
     userId: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      ref: "Customer",
       default: null,
     },
   },
