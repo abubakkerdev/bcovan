@@ -18,7 +18,7 @@ const productSchema = new Schema(
       type: String,
       required: true,
     },
-    sku: {
+    sku: { 
       type: String,
     },
     categoryId: {
@@ -31,9 +31,6 @@ const productSchema = new Schema(
       ref: "SubCategory",
       default: null,
     },
-    childrenCategory: {
-      type: String,
-    },
     tagId: [
       {
         type: Schema.Types.ObjectId,
@@ -43,11 +40,6 @@ const productSchema = new Schema(
     brandId: {
       type: Schema.Types.ObjectId,
       ref: "Brand",
-      default: null,
-    },
-    colorId: {
-      type: Schema.Types.ObjectId,
-      ref: "Color",
       default: null,
     },
     capacityId: {

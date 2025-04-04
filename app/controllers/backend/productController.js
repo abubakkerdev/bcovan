@@ -44,7 +44,6 @@ const handleAllInfoProduct = async (req, res) => {
       sku: 1,
       categoryId: 1,
       subcategoryId: 1,
-      childrenCategory: 1,
       tagId: 1,
       brandId: 1,
       productStatus: 1,
@@ -88,7 +87,6 @@ const handleViewProduct = async (req, res) => {
       sku: 1,
       categoryId: 1,
       subcategoryId: 1,
-      childrenCategory: 1,
       tagId: 1,
       brandId: 1,
       productStatus: 1,
@@ -131,7 +129,6 @@ const handleViewProduct = async (req, res) => {
       sku: productView[0].sku,
       categoryId: productView[0].categoryId,
       subcategoryId: productView[0].subcategoryId,
-      childrenCategory: productView[0].childrenCategory,
       tagId: productView[0].tagId,
       brandId: productView[0].brandId,
       capacityId: productView[0].capacityId,
@@ -177,7 +174,6 @@ const handleEditProduct = async (req, res) => {
       sku: 1,
       categoryId: 1,
       subcategoryId: 1,
-      childrenCategory: 1,
       tagId: 1,
       brandId: 1,
       capacityId: 1,
@@ -214,7 +210,6 @@ const handleStoreProduct = async (req, res) => {
     sku,
     categoryId,
     subcategoryId,
-    childrenCategory,
     tagId,
     brandId,
     capacityId,
@@ -271,7 +266,7 @@ const handleStoreProduct = async (req, res) => {
   //   additionalInfo
   // );
 
-  // console.log(categoryId, subcategoryId, childrenCategory);
+  // console.log(categoryId, subcategoryId);
 
   // return res.send({
   //   success: {
@@ -287,7 +282,6 @@ const handleStoreProduct = async (req, res) => {
     sku,
     categoryId,
     subcategoryId,
-    childrenCategory,
     tagId,
     brandId,
     capacityId,
@@ -372,7 +366,6 @@ const handleUpdateProduct = async (req, res) => {
     sku,
     categoryId,
     subcategoryId,
-    childrenCategory,
     tagId,
     brandId,
     capacityId,
@@ -518,7 +511,6 @@ const handleUpdateProduct = async (req, res) => {
           sku,
           categoryId,
           subcategoryId,
-          childrenCategory,
           tagId,
           brandId,
           capacityId,
@@ -630,7 +622,6 @@ const handleUpdateProduct = async (req, res) => {
           sku,
           categoryId,
           subcategoryId,
-          childrenCategory,
           tagId,
           brandId,
           capacityId,

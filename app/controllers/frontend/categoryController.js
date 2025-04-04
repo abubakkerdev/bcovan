@@ -1,13 +1,18 @@
 const categoryModel = require("../../models/category");
 
 const handleAllCategory = async (req, res) => {
-  const categories = await categoryModel.find({}).
-  select({
-    _id: 1,
+  const categories = await categoryModel.find({})
+  .populate({
+    path: "subCategoryId",
+    select: "_id subCategory",
+  })
+  .select({
     categoryName: 1,
     productId: 1,
-  }).sort({ categoryName: 1 });
- 
+    subCategoryId: 1,
+  })
+  .sort({ categoryName: 1 });
+
   if (categories.length > 0) {
     return res.send({
       success: {
@@ -18,11 +23,11 @@ const handleAllCategory = async (req, res) => {
   } else {
     return res.send({
       error: {
-        message: "Failed to fetch Data",
+        message: "Failed to fetch Data.",
       },
     });
   }
-};
+}; 
 
 module.exports = {
   handleAllCategory,

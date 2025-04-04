@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
-
+ 
 const categorySchema = new Schema(
   {
     categoryName: {
@@ -24,7 +24,7 @@ const categorySchema = new Schema(
     timestamps: true,
   }
 );
-
+ 
 // Middleware to delete related subcategories when a category is deleted
 categorySchema.pre("findOneAndDelete", async function (next) {
   try {

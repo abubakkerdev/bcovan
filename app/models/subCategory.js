@@ -17,18 +17,11 @@ const subCategorySchema = new Schema(
         type: Schema.Types.ObjectId,
         ref: "Product",
       },
-    ],
-    childrenCategory: [
-      {
-        type: Map,
-        of: mongoose.Schema.Types.Mixed,
-        required: true,
-      },
-    ],
+    ]
   },
   {
     timestamps: true,
   }
 );
-
+ 
 module.exports = mongoose.model("SubCategory", subCategorySchema);

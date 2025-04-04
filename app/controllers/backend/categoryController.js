@@ -6,13 +6,13 @@ const handleAllCategory = async (req, res) => {
     .find({})
     .populate({
       path: "subCategoryId",
-      select: "_id subCategory childrenCategory",
+      select: "_id subCategory",
     })
     .select({
       categoryName: 1,
       subCategoryId: 1,
     })
-    .sort({ createdAt: -1 });
+    .sort({ categoryName: 1 });
 
   if (categories.length > 0) {
     return res.send({
@@ -54,7 +54,7 @@ const handleStoreCategory = async (req, res) => {
     });
   }
 };
-
+ 
 const handleDestroyCategory = async (req, res) => {
   const { _id } = req.body;
 
@@ -65,7 +65,6 @@ const handleDestroyCategory = async (req, res) => {
         productStatus: "inactive",
         categoryId: null,
         subcategoryId: null,
-        childrenCategory: "",
       },
     }
   );
@@ -91,3 +90,5 @@ module.exports = {
   handleStoreCategory,
   handleDestroyCategory,
 };
+
+

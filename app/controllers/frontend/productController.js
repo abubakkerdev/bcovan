@@ -1,10 +1,11 @@
 const productModel = require("../../models/product");
+
 const handleAllProduct = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1; // Default page 1
     const dataview = parseInt(req.query.dataview) || 1; // Default dataview 10
     const skip = (page - 1) * dataview;
-  
+    
     const allProducts = await productModel
       .find({ productStatus: "active" })
       .populate({ path: "brandId", select: "_id brandName" })

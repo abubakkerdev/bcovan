@@ -3,10 +3,10 @@ const subCategoryModel = require("../../models/subCategory");
 const productModel = require("../../models/product");
 
 const handleAllSubCategory = async (req, res) => {
-  const allSubCategory = await subCategoryModel
+  const allSubCategory = await categoryModel
     .find({})
-    .populate({ path: "categoryId", select: "_id categoryName" })
-    .sort({ createdAt: -1 });
+    .populate({ path: "subCategoryId", select: "_id subCategory" })
+    .sort({ categoryName: 1 });
 
   if (allSubCategory.length > 0) {
     return res.send({
@@ -25,12 +25,11 @@ const handleAllSubCategory = async (req, res) => {
 };
 
 const handleStoreSubCategory = async (req, res) => {
-  const { subCategory, categoryId, childrenCategory } = req.body;
+  const { subCategory, categoryId } = req.body;
 
   const subCategoryStore = new subCategoryModel({
     subCategory,
     categoryId,
-    childrenCategory,
   });
 
   let subCategoryData = await subCategoryStore.save();
@@ -58,26 +57,12 @@ const handleStoreSubCategory = async (req, res) => {
 };
 
 const handleUpdateSubCategory = async (req, res) => {
-  const { subCategoryInfo, genarateNew, regenerate } = req.body;
-
-  if (regenerate.length > 0) {
-    for (let latestData of regenerate) {
-      await productModel.updateMany(
-        { childrenCategory: latestData },
-        {
-          $set: {
-            productStatus: "inactive",
-            childrenCategory: "",
-          },
-        }
-      );
-    }
-  }
+  const { id, subCatName } = req.body;
 
   try {
     await subCategoryModel.findByIdAndUpdate(
-      { _id: subCategoryInfo._id },
-      { $set: { childrenCategory: genarateNew } },
+      { _id: id },
+      { $set: { subCategory: subCatName } },
       { new: true }
     );
 
@@ -96,25 +81,24 @@ const handleUpdateSubCategory = async (req, res) => {
 };
 
 const handleDestroySubCategory = async (req, res) => {
-  const { subCategoryInfo } = req.body;
+  const { catId, subCatId } = req.body;
 
   await productModel.updateMany(
-    { subcategoryId: subCategoryInfo._id },
+    { subcategoryId: subCatId },
     {
       $set: {
         productStatus: "inactive",
         subcategoryId: null,
-        childrenCategory: "",
       },
     }
   );
 
   try {
-    await subCategoryModel.findByIdAndDelete({ _id: subCategoryInfo._id });
+    await subCategoryModel.findByIdAndDelete({ _id: subCatId });
 
     await categoryModel.findByIdAndUpdate(
-      { _id: subCategoryInfo.categoryId._id },
-      { $pull: { subCategoryId: subCategoryInfo._id } },
+      { _id: catId },
+      { $pull: { subCategoryId: subCatId } },
       { new: true }
     );
 
