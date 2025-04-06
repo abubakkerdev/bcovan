@@ -4,6 +4,7 @@ const {
   handleAllInfoProduct: allInfoProduct,
   handleStoreProduct: storeProduct,
   handleUpdateProduct: updateProduct,
+  handleUpdateImage: updateImage,
   handleUpdateArrival: arrivalProduct,
   handleViewProduct: viewProduct,
   handleEditProduct: editProduct,
@@ -18,6 +19,7 @@ _.get("/all",  apiGetRequestValidation, allProduct);
 _.get("/allinfo",  apiGetRequestValidation, allInfoProduct);
 _.post("/store", apiPostRequestValidation, storeProduct);
 _.post("/update", apiPostRequestValidation, updateProduct);
+_.post("/image/update", apiPostRequestValidation, updateImage);
 _.post("/arrival", apiPostRequestValidation, arrivalProduct);
 
 _.get("/view/:id", apiGetRequestValidation, viewProduct);

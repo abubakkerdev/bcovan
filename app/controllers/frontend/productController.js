@@ -5,7 +5,7 @@ const handleAllProduct = async (req, res) => {
     const page = parseInt(req.query.page) || 1; // Default page 1
     const dataview = parseInt(req.query.dataview) || 1; // Default dataview 10
     const skip = (page - 1) * dataview;
-    
+
     const allProducts = await productModel
       .find({ productStatus: "active" })
       .populate({ path: "brandId", select: "_id brandName" })
@@ -20,7 +20,7 @@ const handleAllProduct = async (req, res) => {
         tagId: 1,
         brandId: 1,
         capacityId: 1,
-        imageArray: 1,
+        thumbnails: 1,
       })
       .sort({ createdAt: -1 })
       .skip(skip) // Pagination
@@ -62,6 +62,94 @@ const handleAllProduct = async (req, res) => {
   }
 };
 
+const handleCategoryProduct = async (req, res) => {
+  try {
+    const allProducts = await productModel
+      .find({ productStatus: "active", categoryId: req.body.id })
+      .populate({ path: "brandId", select: "_id brandName" })
+      .populate({ path: "categoryId", select: "_id categoryName" })
+      .populate({ path: "capacityId", select: "_id capacityName" })
+      .populate({ path: "tagId", select: "_id tagName" })
+      .select({
+        title: 1,
+        shortDesc: 1,
+        amount: 1,
+        categoryId: 1,
+        tagId: 1,
+        brandId: 1,
+        capacityId: 1,
+        thumbnails: 1,
+      })
+      .sort({ createdAt: -1 });
+
+    if (allProducts.length > 0) {
+      return res.send({
+        success: {
+          message: "Data Fetch Successfull.",
+          data: allProducts,
+        },
+      });
+    } else {
+      return res.send({
+        error: {
+          message: "Failed to fetch Data",
+        },
+      });
+    }
+  } catch (error) {
+    return res.status(500).send({
+      error: {
+        message: "Internal Server Error",
+        details: error.message,
+      },
+    });
+  }
+};
+
+const handleSubCategoryProduct = async (req, res) => {
+  try {
+    const allProducts = await productModel
+      .find({ productStatus: "active", subcategoryId: req.body.id })
+      .populate({ path: "brandId", select: "_id brandName" })
+      .populate({ path: "categoryId", select: "_id categoryName" })
+      .populate({ path: "capacityId", select: "_id capacityName" })
+      .populate({ path: "tagId", select: "_id tagName" })
+      .select({
+        title: 1,
+        shortDesc: 1,
+        amount: 1,
+        categoryId: 1,
+        tagId: 1,
+        brandId: 1,
+        capacityId: 1,
+        thumbnails: 1,
+      })
+      .sort({ createdAt: -1 });
+
+    if (allProducts.length > 0) {
+      return res.send({
+        success: {
+          message: "Data Fetch Successfull.",
+          data: allProducts,
+        },
+      });
+    } else {
+      return res.send({
+        error: {
+          message: "Failed to fetch Data",
+        },
+      });
+    }
+  } catch (error) {
+    return res.status(500).send({
+      error: {
+        message: "Internal Server Error",
+        details: error.message,
+      },
+    });
+  }
+};
+
 const handleViewProduct = async (req, res) => {
   const id = req.params.id;
 
@@ -84,12 +172,12 @@ const handleViewProduct = async (req, res) => {
       imageArray: 1,
       relatedProduct: 1,
     });
- 
+
   let relatedProductData = await Promise.all(
     productView[0].relatedProduct.map(async (el) => {
       let productInfo = await productModel
         .find({ _id: el })
-        .select({ _id: 1, title: 1, amount: 1, imageArray: 1 });
+        .select({ _id: 1, title: 1, amount: 1, thumbnails: 1 });
 
       return productInfo[0];
     })
@@ -131,5 +219,10 @@ const handleViewProduct = async (req, res) => {
 
 module.exports = {
   handleAllProduct,
+  handleCategoryProduct,
+  handleSubCategoryProduct,
   handleViewProduct,
 };
+
+
+

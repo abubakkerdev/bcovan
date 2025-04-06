@@ -8,7 +8,6 @@ const tagModel = require("../../models/tag");
 const fs = require("node:fs");
 const path = require("node:path");
 
-// all is ok
 const handleAllProduct = async (req, res) => {
   const allProducts = await productModel.find({}).select({
     _id: 1,
@@ -31,7 +30,6 @@ const handleAllProduct = async (req, res) => {
   }
 };
 
-// all is ok
 const handleAllInfoProduct = async (req, res) => {
   const allProducts = await productModel
     .find({})
@@ -72,7 +70,6 @@ const handleAllInfoProduct = async (req, res) => {
   }
 };
 
-// all is ok
 const handleViewProduct = async (req, res) => {
   const id = req.params.id;
 
@@ -148,7 +145,6 @@ const handleViewProduct = async (req, res) => {
   }
 };
 
-// all is ok
 const handleEditProduct = async (req, res) => {
   const id = req.params.id;
 
@@ -162,7 +158,7 @@ const handleEditProduct = async (req, res) => {
     .select({
       title: 1,
       shortDesc: 1,
-      description: 1, 
+      description: 1,
       amount: 1,
       sku: 1,
       categoryId: 1,
@@ -173,7 +169,7 @@ const handleEditProduct = async (req, res) => {
       thumbnails: 1,
       imageArray: 1,
       relatedProduct: 1,
-      newArrivals: 1
+      newArrivals: 1,
     });
 
   if (editProduct.length > 0) {
@@ -192,7 +188,6 @@ const handleEditProduct = async (req, res) => {
   }
 };
 
-// all is ok
 const handleStoreProduct = async (req, res) => {
   const {
     title,
@@ -356,275 +351,199 @@ const handleUpdateProduct = async (req, res) => {
     tagId,
     brandId,
     capacityId,
+    thumbnails,
     imageArray,
     relatedProduct,
+    newArrivals,
   } = req.body;
 
   let productInfo = await productModel.find({ _id: id });
+  let newArrivalsData = newArrivals ? "active" : "inactive";
 
-  // console.log("tagId", productInfo[0]);
-  // return res.send({
-  //   success: {
-  //     message: "Product Update Successfull.",
-  //   },
-  // });
+  function fileNameGenerate(originalname) {
+    const fileExt = path.extname(originalname);
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    const fileName =
+      originalname.replace(fileExt, "").toLowerCase().split(" ").join("-") +
+      "-";
 
-  if (productInfo.length > 0) {
-    if (imageArray.length > 0) {
-      productInfo[0].imageArray.map((imgURL) => {
-        let filePath = "./public/images/" + imgURL;
-        fs.unlinkSync(filePath);
-      });
+    const imageName = fileName + uniqueSuffix + fileExt;
+    return imageName;
+  }
 
-      function fileNameGenerate(originalname) {
-        const fileExt = path.extname(originalname);
-        const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-        const fileName =
-          originalname.replace(fileExt, "").toLowerCase().split(" ").join("-") +
-          "-";
+  function base64ToFile(base64Data, filePath) {
+    const base64DataWithoutHeader = base64Data.replace(
+      /^data:image\/\w+;base64,/,
+      ""
+    );
+    const buffer = Buffer.from(base64DataWithoutHeader, "base64");
+    fs.writeFileSync(filePath, buffer);
 
-        const imageName = fileName + uniqueSuffix + fileExt;
-        return imageName;
-      }
+    return filePath;
+  }
 
-      function base64ToFile(base64Data, filePath) {
-        const base64DataWithoutHeader = base64Data.replace(
-          /^data:image\/\w+;base64,/,
-          ""
-        );
-        const buffer = Buffer.from(base64DataWithoutHeader, "base64");
-        fs.writeFileSync(filePath, buffer);
+  let oldImageArr = productInfo[0].imageArray.map((map) =>
+    Object.fromEntries(map)
+  );
+  let newUpdatedImage = [...oldImageArr];
 
-        return filePath;
-      }
+  if (thumbnails.imageName !== "") {
+    let filePath = "./public/images/" + productInfo[0].thumbnails;
+    fs.unlinkSync(filePath);
 
-      let newImageArr = imageArray.map((el) => {
-        let imageFile = fileNameGenerate(el.name);
-        const filePathImage = `./public/images/${imageFile}`;
-        base64ToFile(el.base64, filePathImage);
+    let imageFileCreate = fileNameGenerate(thumbnails.imageName);
+    const filePathImage = `./public/images/${imageFileCreate}`;
+    base64ToFile(thumbnails.imageBase64Data, filePathImage);
 
-        return imageFile;
-      });
-
-      if (brandId != productInfo[0].brandId) {
-        await brandModel.findByIdAndUpdate(
-          { _id: brandId },
-          { $push: { productId: productInfo[0]._id } },
-          { new: true }
-        );
-
-        await brandModel.findByIdAndUpdate(
-          { _id: productInfo[0].brandId },
-          { $pull: { productId: productInfo[0]._id } },
-          { new: true }
-        );
-      }
-
-      if (capacityId != productInfo[0].capacityId) {
-        await capacityModel.findByIdAndUpdate(
-          { _id: capacityId },
-          { $push: { productId: productInfo[0]._id } },
-          { new: true }
-        );
-
-        await capacityModel.findByIdAndUpdate(
-          { _id: productInfo[0].capacityId },
-          { $pull: { productId: productInfo[0]._id } },
-          { new: true }
-        );
-      }
-
-      if (productInfo[0].categoryId) {
-        if (categoryId != productInfo[0].categoryId) {
-          await categoryModel.findByIdAndUpdate(
-            { _id: categoryId },
-            { $push: { productId: productInfo[0]._id } },
-            { new: true }
-          );
-          await categoryModel.findByIdAndUpdate(
-            { _id: productInfo[0].categoryId },
-            { $pull: { productId: productInfo[0]._id } },
-            { new: true }
-          );
-        }
-      }
-
-      if (productInfo[0].subcategoryId) {
-        if (subcategoryId != productInfo[0].subcategoryId) {
-          await subCategoryModel.findByIdAndUpdate(
-            { _id: subcategoryId },
-            { $push: { productId: productInfo[0]._id } },
-            { new: true }
-          );
-          await subCategoryModel.findByIdAndUpdate(
-            { _id: productInfo[0].subcategoryId },
-            { $pull: { productId: productInfo[0]._id } },
-            { new: true }
-          );
-        }
-      }
-
-      let newTagId = tagId.map((el) => el._id);
-      let oldTagId = productInfo[0].tagId.map((el) => el.toString());
-      let removedTags = oldTagId.filter((tag) => !newTagId.includes(tag));
-
-      for (let latestTagId of newTagId) {
-        await tagModel.findByIdAndUpdate(
-          { _id: latestTagId },
-          {
-            $addToSet: { productId: productInfo[0]._id }, // Add productId only if it doesn't exist
-          },
-          { new: true }
-        );
-      }
-
-      for (let rmTagId of removedTags) {
-        await tagModel.findByIdAndUpdate(
-          { _id: rmTagId },
-          { $pull: { productId: productInfo[0]._id } },
-          { new: true }
-        );
-      }
-
-      let updatedsProductInfo = await productModel.findByIdAndUpdate(
-        { _id: id },
-        {
-          title,
-          shortDesc,
-          description,
-          amount,
-          sku,
-          categoryId,
-          subcategoryId,
-          tagId,
-          brandId,
-          capacityId,
-          imageArray: newImageArr,
-          relatedProduct,
-          productStatus: "active",
-        },
-        { new: true }
-      );
-
-      // console.log("updatedProductInfo", updatedProductInfo);
-
-      return res.send({
-        success: {
-          message: "Product Update Successfull.",
-          data: updatedsProductInfo,
-        },
-      });
-    } else {
-      if (brandId != productInfo[0].brandId) {
-        await brandModel.findByIdAndUpdate(
-          { _id: brandId },
-          { $push: { productId: productInfo[0]._id } },
-          { new: true }
-        );
-
-        await brandModel.findByIdAndUpdate(
-          { _id: productInfo[0].brandId },
-          { $pull: { productId: productInfo[0]._id } },
-          { new: true }
-        );
-      }
-
-      if (capacityId != productInfo[0].capacityId) {
-        await capacityModel.findByIdAndUpdate(
-          { _id: capacityId },
-          { $push: { productId: productInfo[0]._id } },
-          { new: true }
-        );
-
-        await capacityModel.findByIdAndUpdate(
-          { _id: productInfo[0].capacityId },
-          { $pull: { productId: productInfo[0]._id } },
-          { new: true }
-        );
-      }
-
-      if (productInfo[0].categoryId) {
-        if (categoryId != productInfo[0].categoryId) {
-          await categoryModel.findByIdAndUpdate(
-            { _id: categoryId },
-            { $push: { productId: productInfo[0]._id } },
-            { new: true }
-          );
-          await categoryModel.findByIdAndUpdate(
-            { _id: productInfo[0].categoryId },
-            { $pull: { productId: productInfo[0]._id } },
-            { new: true }
-          );
-        }
-      }
-
-      if (productInfo[0].subcategoryId) {
-        if (subcategoryId != productInfo[0].subcategoryId) {
-          await subCategoryModel.findByIdAndUpdate(
-            { _id: subcategoryId },
-            { $push: { productId: productInfo[0]._id } },
-            { new: true }
-          );
-          await subCategoryModel.findByIdAndUpdate(
-            { _id: productInfo[0].subcategoryId },
-            { $pull: { productId: productInfo[0]._id } },
-            { new: true }
-          );
-        }
-      }
-
-      let newTagId = tagId.map((el) => el._id);
-      let oldTagId = productInfo[0].tagId.map((el) => el.toString());
-      let removedTags = oldTagId.filter((tag) => !newTagId.includes(tag));
-
-      for (let latestTagId of newTagId) {
-        await tagModel.findByIdAndUpdate(
-          { _id: latestTagId },
-          {
-            $addToSet: { productId: productInfo[0]._id }, // Add productId only if it doesn't exist
-          },
-          { new: true }
-        );
-      }
-
-      for (let rmTagId of removedTags) {
-        await tagModel.findByIdAndUpdate(
-          { _id: rmTagId },
-          { $pull: { productId: productInfo[0]._id } },
-          { new: true }
-        );
-      }
-
-      let updatedsProductInfo = await productModel.findByIdAndUpdate(
-        { _id: id },
-        {
-          title,
-          shortDesc,
-          description,
-          amount,
-          sku,
-          categoryId,
-          subcategoryId,
-          tagId,
-          brandId,
-          capacityId,
-          imageArray: productInfo[0].imageArray,
-          relatedProduct,
-          productStatus: "active",
-        },
-        { new: true }
-      );
-
-      // console.log("updatedProductInfo", updatedProductInfo);
-
-      return res.send({
-        success: {
-          message: "Product Update Successfull.",
-          data: updatedsProductInfo,
-        },
-      });
-    }
+    newUpdatedImage[0] = { id: 1, imageURL: imageFileCreate };
   } else {
+    newUpdatedImage[0] = oldImageArr[0];
+  }
+
+  if (imageArray.length !== 0) {
+    imageArray.map((el) => {
+      let imageFile = fileNameGenerate(el.name);
+      const filePathImage = `./public/images/${imageFile}`;
+      base64ToFile(el.base64, filePathImage);
+
+      newUpdatedImage.push({
+        id: newUpdatedImage.length + 1,
+        imageURL: imageFile,
+      });
+    });
+  }
+
+  if (brandId != productInfo[0].brandId) {
+    // await brandModel.findByIdAndUpdate(
+    //   { _id: brandId },
+    //   { $push: { productId: productInfo[0]._id } },
+    //   { new: true }
+    // );
+
+    // await brandModel.findByIdAndUpdate(
+    //   { _id: productInfo[0].brandId },
+    //   { $pull: { productId: productInfo[0]._id } },
+    //   { new: true }
+    // );
+
+    await brandModel.bulkWrite([
+      {
+        updateOne: {
+          filter: { _id: brandId },
+          update: { $push: { productId: productInfo[0]._id } },
+        },
+      },
+      {
+        updateOne: {
+          filter: { _id: productInfo[0].brandId },
+          update: { $pull: { productId: productInfo[0]._id } },
+        },
+      },
+    ]);
+  }
+
+  if (capacityId != productInfo[0].capacityId) {
+    await capacityModel.findByIdAndUpdate(
+      { _id: capacityId },
+      { $push: { productId: productInfo[0]._id } },
+      { new: true }
+    );
+
+    await capacityModel.findByIdAndUpdate(
+      { _id: productInfo[0].capacityId },
+      { $pull: { productId: productInfo[0]._id } },
+      { new: true }
+    );
+  }
+
+  if (productInfo[0].categoryId) {
+    if (categoryId != productInfo[0].categoryId) {
+      await categoryModel.findByIdAndUpdate(
+        { _id: categoryId },
+        { $push: { productId: productInfo[0]._id } },
+        { new: true }
+      );
+      await categoryModel.findByIdAndUpdate(
+        { _id: productInfo[0].categoryId },
+        { $pull: { productId: productInfo[0]._id } },
+        { new: true }
+      );
+    }
+  }
+
+  if (productInfo[0].subcategoryId) {
+    if (subcategoryId != productInfo[0].subcategoryId) {
+      await subCategoryModel.findByIdAndUpdate(
+        { _id: subcategoryId },
+        { $push: { productId: productInfo[0]._id } },
+        { new: true }
+      );
+      await subCategoryModel.findByIdAndUpdate(
+        { _id: productInfo[0].subcategoryId },
+        { $pull: { productId: productInfo[0]._id } },
+        { new: true }
+      );
+    }
+  }
+
+  let newTagId = tagId.map((el) => el._id);
+  let oldTagId = productInfo[0].tagId.map((el) => el.toString());
+  let removedTags = oldTagId.filter((tag) => !newTagId.includes(tag));
+
+  for (let latestTagId of newTagId) {
+    await tagModel.findByIdAndUpdate(
+      { _id: latestTagId },
+      {
+        $addToSet: { productId: productInfo[0]._id }, // Add productId only if it doesn't exist
+      },
+      { new: true }
+    );
+  }
+
+  for (let rmTagId of removedTags) {
+    await tagModel.findByIdAndUpdate(
+      { _id: rmTagId },
+      { $pull: { productId: productInfo[0]._id } },
+      { new: true }
+    );
+  }
+
+  try {
+    let updatedsProductInfo = await productModel.findByIdAndUpdate(
+      { _id: id },
+      {
+        title,
+        shortDesc,
+        description,
+        amount,
+        sku,
+        categoryId,
+        subcategoryId,
+        tagId,
+        brandId,
+        capacityId,
+        thumbnails: newUpdatedImage[0].imageURL,
+        imageArray: newUpdatedImage,
+        relatedProduct,
+        newArrivals: newArrivalsData,
+        productStatus: "active",
+      },
+      { new: true }
+    );
+
+    // console.log("oldImageArr", oldImageArr);
+    // console.log("newUpdatedImage", newUpdatedImage);
+
+    // console.log("productInfo[0].brandId", productInfo[0].brandId);
+    // console.log("updatedsProductInfo", updatedsProductInfo);
+
+    return res.send({
+      success: {
+        message: "Product Update Successfull.",
+        data: updatedsProductInfo,
+      },
+    });
+  } catch (error) {
     return res.send({
       error: {
         message: "There was an server-side Error",
@@ -633,7 +552,6 @@ const handleUpdateProduct = async (req, res) => {
   }
 };
 
-// all is ok
 const handleDestroyProduct = async (req, res) => {
   const { id } = req.body;
 
@@ -716,7 +634,43 @@ const handleDestroyProduct = async (req, res) => {
   }
 };
 
-// all is ok
+const handleUpdateImage = async (req, res) => {
+  const { id, info } = req.body;
+
+  let filePath = "./public/images/" + info.imageURL;
+  fs.unlinkSync(filePath);
+
+  const productInfo = await productModel.find({ _id: id });
+
+  const objectArray = productInfo[0].imageArray.map((map) =>
+    Object.fromEntries(map)
+  );
+
+  let newImageArr = objectArray
+    .filter((el) => el.id != info.id)
+    .map((el, index) => ({ ...el, id: index + 1 }));
+
+  try {
+    await productModel.findByIdAndUpdate(
+      { _id: id },
+      { $set: { imageArray: newImageArr } },
+      { new: true }
+    );
+
+    return res.send({
+      success: {
+        message: "Product Image deleted successfully!",
+      },
+    });
+  } catch (error) {
+    return res.send({
+      error: {
+        message: "Failed to delete. Please try again.",
+      },
+    });
+  }
+};
+
 const handleUpdateArrival = async (req, res) => {
   const { id } = req.body;
 
@@ -756,11 +710,13 @@ module.exports = {
   handleAllInfoProduct,
   handleStoreProduct,
   handleUpdateProduct,
+  handleUpdateImage,
   handleUpdateArrival,
   handleViewProduct,
   handleEditProduct,
   handleDestroyProduct,
 };
+
 
 // const productId = "67da621c59fe762ac9a2462f";
 
