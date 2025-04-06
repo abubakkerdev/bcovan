@@ -75,7 +75,6 @@ const handleViewProduct = async (req, res) => {
       title: 1,
       shortDesc: 1,
       description: 1,
-      additionalInfo: 1,
       amount: 1,
       sku: 1,
       categoryId: 1,
@@ -83,20 +82,9 @@ const handleViewProduct = async (req, res) => {
       brandId: 1,
       capacityId: 1,
       imageArray: 1,
-      moreProduct: 1,
       relatedProduct: 1,
     });
-
-  let moreProductData = await Promise.all(
-    productView[0].moreProduct.map(async (el) => {
-      let productInfo = await productModel
-        .find({ _id: el })
-        .select({ _id: 1, title: 1, amount: 1, imageArray: 1 });
-
-      return productInfo[0];
-    })
-  );
-
+ 
   let relatedProductData = await Promise.all(
     productView[0].relatedProduct.map(async (el) => {
       let productInfo = await productModel
@@ -112,7 +100,6 @@ const handleViewProduct = async (req, res) => {
       title: productView[0].title,
       shortDesc: productView[0].shortDesc,
       description: productView[0].description,
-      additionalInfo: productView[0].additionalInfo,
       amount: productView[0].amount,
       sku: productView[0].sku,
       categoryId: productView[0].categoryId,
@@ -120,7 +107,6 @@ const handleViewProduct = async (req, res) => {
       brandId: productView[0].brandId,
       capacityId: productView[0].capacityId,
       imageArray: productView[0].imageArray,
-      moreProduct: moreProductData,
       relatedProduct: relatedProductData,
     },
   ];

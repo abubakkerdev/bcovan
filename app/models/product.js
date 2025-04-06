@@ -18,7 +18,7 @@ const productSchema = new Schema(
       type: String,
       required: true,
     },
-    sku: { 
+    sku: {
       type: String,
     },
     categoryId: {
@@ -53,15 +53,15 @@ const productSchema = new Schema(
         ref: "Review",
       },
     ],
+    thumbnails: {
+      type: String,
+      required: true,
+    },
     imageArray: [
       {
-        type: String,
+        type: Map,
+        of: mongoose.Schema.Types.Mixed,
         required: true,
-      },
-    ],
-    moreProduct: [
-      {
-        type: String,
       },
     ],
     relatedProduct: [
@@ -69,8 +69,9 @@ const productSchema = new Schema(
         type: String,
       },
     ],
-    additionalInfo: {
+    newArrivals: {
       type: String,
+      default: "inactive",
     },
     productStatus: {
       type: String,

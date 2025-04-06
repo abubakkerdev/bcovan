@@ -8,6 +8,7 @@ const tagModel = require("../../models/tag");
 const fs = require("node:fs");
 const path = require("node:path");
 
+// all is ok
 const handleAllProduct = async (req, res) => {
   const allProducts = await productModel.find({}).select({
     _id: 1,
@@ -30,6 +31,7 @@ const handleAllProduct = async (req, res) => {
   }
 };
 
+// all is ok
 const handleAllInfoProduct = async (req, res) => {
   const allProducts = await productModel
     .find({})
@@ -48,7 +50,9 @@ const handleAllInfoProduct = async (req, res) => {
       brandId: 1,
       productStatus: 1,
       capacityId: 1,
+      thumbnails: 1,
       imageArray: 1,
+      newArrivals: 1,
     })
     .sort({ createdAt: -1 });
 
@@ -68,6 +72,7 @@ const handleAllInfoProduct = async (req, res) => {
   }
 };
 
+// all is ok
 const handleViewProduct = async (req, res) => {
   const id = req.params.id;
 
@@ -82,7 +87,6 @@ const handleViewProduct = async (req, res) => {
       title: 1,
       shortDesc: 1,
       description: 1,
-      additionalInfo: 1,
       amount: 1,
       sku: 1,
       categoryId: 1,
@@ -91,20 +95,10 @@ const handleViewProduct = async (req, res) => {
       brandId: 1,
       productStatus: 1,
       capacityId: 1,
+      thumbnails: 1,
       imageArray: 1,
-      moreProduct: 1,
       relatedProduct: 1,
     });
-
-  let moreProductData = await Promise.all(
-    productView[0].moreProduct.map(async (el) => {
-      let productInfo = await productModel
-        .find({ _id: el })
-        .select({ _id: 1, title: 1, imageArray: 1 });
-
-      return productInfo;
-    })
-  );
 
   let relatedProductData = await Promise.all(
     productView[0].relatedProduct.map(async (el) => {
@@ -116,7 +110,6 @@ const handleViewProduct = async (req, res) => {
     })
   );
 
-  // console.log("moreProductData", moreProductData);
   // console.log("relatedProductData", relatedProductData);
 
   let latestProductInfo = [
@@ -124,7 +117,6 @@ const handleViewProduct = async (req, res) => {
       title: productView[0].title,
       shortDesc: productView[0].shortDesc,
       description: productView[0].description,
-      additionalInfo: productView[0].additionalInfo,
       amount: productView[0].amount,
       sku: productView[0].sku,
       categoryId: productView[0].categoryId,
@@ -132,8 +124,8 @@ const handleViewProduct = async (req, res) => {
       tagId: productView[0].tagId,
       brandId: productView[0].brandId,
       capacityId: productView[0].capacityId,
+      thumbnails: productView[0].thumbnails,
       imageArray: productView[0].imageArray,
-      moreProduct: moreProductData,
       relatedProduct: relatedProductData,
     },
   ];
@@ -156,6 +148,7 @@ const handleViewProduct = async (req, res) => {
   }
 };
 
+// all is ok
 const handleEditProduct = async (req, res) => {
   const id = req.params.id;
 
@@ -169,7 +162,7 @@ const handleEditProduct = async (req, res) => {
     .select({
       title: 1,
       shortDesc: 1,
-      description: 1,
+      description: 1, 
       amount: 1,
       sku: 1,
       categoryId: 1,
@@ -177,13 +170,11 @@ const handleEditProduct = async (req, res) => {
       tagId: 1,
       brandId: 1,
       capacityId: 1,
+      thumbnails: 1,
       imageArray: 1,
-      moreProduct: 1,
       relatedProduct: 1,
-      additionalInfo: 1,
+      newArrivals: 1
     });
-
-  // console.log("data", moreProductData);
 
   if (editProduct.length > 0) {
     return res.send({
@@ -201,6 +192,7 @@ const handleEditProduct = async (req, res) => {
   }
 };
 
+// all is ok
 const handleStoreProduct = async (req, res) => {
   const {
     title,
@@ -213,10 +205,10 @@ const handleStoreProduct = async (req, res) => {
     tagId,
     brandId,
     capacityId,
+    thumbnails,
     imageArray,
-    moreProduct,
     relatedProduct,
-    additionalInfo,
+    newArrivals,
   } = req.body;
 
   function fileNameGenerate(originalname) {
@@ -241,6 +233,10 @@ const handleStoreProduct = async (req, res) => {
     return filePath;
   }
 
+  let imageFileThumbnail = fileNameGenerate(thumbnails.imageName);
+  const filePathImageThumbnail = `./public/images/${imageFileThumbnail}`;
+  base64ToFile(thumbnails.imageBase64Data, filePathImageThumbnail);
+
   let newImageArr = imageArray.map((el) => {
     let imageFile = fileNameGenerate(el.name);
     const filePathImage = `./public/images/${imageFile}`;
@@ -249,22 +245,13 @@ const handleStoreProduct = async (req, res) => {
     return imageFile;
   });
 
-  // console.log(newImageArr);
+  let arrOfImage = [imageFileThumbnail, ...newImageArr].map((image, id) => {
+    return { id: id + 1, imageURL: image };
+  });
 
-  // console.log(
-  //   title,
-  //   shortDesc,
-  //   description,
-  //   amount,
-  //   sku,
-  //   categoryId,
-  //   tagId,
-  //   brandId,
-  //   capacityId,
-  //   moreProduct,
-  //   relatedProduct,
-  //   additionalInfo
-  // );
+  //  console.log(imageFileThumbnail);
+  //  console.log(newImageArr);
+  //  console.log(arrOfImage);
 
   // console.log(categoryId, subcategoryId);
 
@@ -285,10 +272,10 @@ const handleStoreProduct = async (req, res) => {
     tagId,
     brandId,
     capacityId,
-    imageArray: newImageArr,
-    moreProduct,
+    thumbnails: imageFileThumbnail,
+    imageArray: arrOfImage,
     relatedProduct,
-    additionalInfo,
+    newArrivals,
   });
 
   let productData = await product.save();
@@ -370,9 +357,7 @@ const handleUpdateProduct = async (req, res) => {
     brandId,
     capacityId,
     imageArray,
-    moreProduct,
     relatedProduct,
-    additionalInfo,
   } = req.body;
 
   let productInfo = await productModel.find({ _id: id });
@@ -515,9 +500,7 @@ const handleUpdateProduct = async (req, res) => {
           brandId,
           capacityId,
           imageArray: newImageArr,
-          moreProduct,
           relatedProduct,
-          additionalInfo,
           productStatus: "active",
         },
         { new: true }
@@ -626,9 +609,7 @@ const handleUpdateProduct = async (req, res) => {
           brandId,
           capacityId,
           imageArray: productInfo[0].imageArray,
-          moreProduct,
           relatedProduct,
-          additionalInfo,
           productStatus: "active",
         },
         { new: true }
@@ -652,16 +633,16 @@ const handleUpdateProduct = async (req, res) => {
   }
 };
 
+// all is ok
 const handleDestroyProduct = async (req, res) => {
   const { id } = req.body;
 
   const productInfo = await productModel.find({ _id: id });
-
   // console.log("productInfo", productInfo);
 
   if (productInfo.length !== 0) {
-    productInfo[0].imageArray.map((imgURL) => {
-      let filePath = "./public/images/" + imgURL;
+    productInfo[0].imageArray.map((el) => {
+      let filePath = "./public/images/" + el.get("imageURL");
       fs.unlinkSync(filePath);
     });
 
@@ -702,34 +683,6 @@ const handleDestroyProduct = async (req, res) => {
       { new: true }
     );
 
-    if (productInfo[0].moreProduct) {
-      // let products = await productModel
-      //   .find({
-      //     moreProduct: { $in: [id] },
-      //   })
-      //   .select({
-      //     _id: 1,
-      //     title: 1,
-      //   });
-
-      // console.log("products", products);
-
-      // products.map(async (el) => {
-      //   await productModel.findByIdAndUpdate(
-      //     { _id: el._id },
-      //     { $pull: { productId: productInfo[0]._id } },
-      //     { new: true }
-      //   );
-      //   return "ok";
-      // });
-
-      await productModel.updateMany(
-        { moreProduct: { $in: [id] } },
-        { $pull: { moreProduct: productInfo[0]._id } },
-        { new: true }
-      );
-    }
-
     if (productInfo[0].relatedProduct) {
       await productModel.updateMany(
         { relatedProduct: { $in: [id] } },
@@ -762,12 +715,48 @@ const handleDestroyProduct = async (req, res) => {
     });
   }
 };
- 
+
+// all is ok
+const handleUpdateArrival = async (req, res) => {
+  const { id } = req.body;
+
+  const productInfo = await productModel.findByIdAndUpdate(
+    { _id: id },
+    [
+      {
+        $set: {
+          newArrivals: {
+            $cond: [{ $eq: ["$newArrivals", "active"] }, "inactive", "active"],
+          },
+        },
+      },
+    ],
+    { new: true }
+  );
+
+  // console.log("productInfo", productInfo);
+
+  if (productInfo.length !== 0) {
+    return res.send({
+      success: {
+        message: "Data updated successfully!",
+      },
+    });
+  } else {
+    return res.send({
+      error: {
+        message: "There was an server-side Error",
+      },
+    });
+  }
+};
+
 module.exports = {
   handleAllProduct,
   handleAllInfoProduct,
   handleStoreProduct,
   handleUpdateProduct,
+  handleUpdateArrival,
   handleViewProduct,
   handleEditProduct,
   handleDestroyProduct,
