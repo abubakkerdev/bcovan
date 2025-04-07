@@ -1,4 +1,5 @@
 const brandModel = require("../../models/brand");
+const productModel = require("../../models/product");
 const fs = require("node:fs");
 const path = require("node:path");
 
@@ -79,12 +80,21 @@ const handleStoreBrand = async (req, res) => {
     });
   }
 };
-
+ 
 const handleDestroyBrand = async (req, res) => {
   const { _id, imgURL } = req.body;
 
   const filePath = "./public/images/" + imgURL;
   fs.unlinkSync(filePath);
+ 
+  await productModel.updateMany(
+    { brandId: _id },
+    {
+      $set: {
+        brandId: null,
+      },
+    }
+  );
 
   try {
     await brandModel.findByIdAndDelete({ _id: _id });

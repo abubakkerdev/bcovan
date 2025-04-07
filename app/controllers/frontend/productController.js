@@ -152,7 +152,7 @@ const handleSubCategoryProduct = async (req, res) => {
 
 const handleViewProduct = async (req, res) => {
   const id = req.params.id;
-
+ 
   const productView = await productModel
     .find({ _id: id })
     .populate({ path: "brandId", select: "_id brandName" })
@@ -199,8 +199,6 @@ const handleViewProduct = async (req, res) => {
     },
   ];
 
-  // console.log("latestProductInfo", latestProductInfo);
-
   if (productView.length > 0) {
     return res.send({
       success: {
@@ -223,6 +221,4 @@ module.exports = {
   handleSubCategoryProduct,
   handleViewProduct,
 };
-
-
 

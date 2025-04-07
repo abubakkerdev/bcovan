@@ -12,7 +12,8 @@ const handleAllCategory = async (req, res) => {
     subCategoryId: 1,
   })
   .sort({ categoryName: 1 });
-
+  
+  
   if (categories.length > 0) {
     return res.send({
       success: {

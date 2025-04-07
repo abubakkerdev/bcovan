@@ -1,4 +1,5 @@
 const capacityModel = require("../../models/capacity");
+const productModel = require("../../models/product");
 
 const handleAllCapacity = async (req, res) => {
   const capacity = await capacityModel.find(
@@ -52,6 +53,15 @@ const handleStoreCapacity = async (req, res) => {
 
 const handleDestroyCapacity = async (req, res) => {
   const { _id } = req.body;
+   
+  await productModel.updateMany(
+    { capacityId: _id },
+    {
+      $set: {
+        capacityId: null,
+      },
+    }
+  );
 
   try {
     await capacityModel.findByIdAndDelete({ _id: _id });

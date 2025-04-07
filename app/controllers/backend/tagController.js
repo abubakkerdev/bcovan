@@ -1,4 +1,5 @@
 const tagModel = require("../../models/tag");
+const productModel = require("../../models/product");
 
 const handleAllTag = async (req, res) => {
   const tags = await tagModel.find(
@@ -53,6 +54,22 @@ const handleStoreTag = async (req, res) => {
 const handleDestroyTag = async (req, res) => {
   const { _id } = req.body;
 
+  await productModel.updateMany(
+    { tagId: { $in: [_id] } },
+    { $pull: { tagId: _id } },
+    { new: true }
+  );
+
+  const productsWithoutTags = await productModel.find({
+    tagId: { $exists: true, $eq: [] },
+  });
+ 
+  // Step 3: Update those products to set status inactive
+  for (const product of productsWithoutTags) {
+    product.productStatus = "inactive";
+    await product.save();
+  }
+
   try {
     await tagModel.findByIdAndDelete({ _id: _id });
     return res.send({
@@ -74,7 +91,3 @@ module.exports = {
   handleStoreTag,
   handleDestroyTag,
 };
-
-
-
-
