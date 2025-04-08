@@ -443,17 +443,32 @@ const handleUpdateProduct = async (req, res) => {
   }
 
   if (capacityId != productInfo[0].capacityId) {
-    await capacityModel.findByIdAndUpdate(
-      { _id: capacityId },
-      { $push: { productId: productInfo[0]._id } },
-      { new: true }
-    );
+    // await capacityModel.findByIdAndUpdate(
+    //   { _id: capacityId },
+    //   { $push: { productId: productInfo[0]._id } },
+    //   { new: true }
+    // );
 
-    await capacityModel.findByIdAndUpdate(
-      { _id: productInfo[0].capacityId },
-      { $pull: { productId: productInfo[0]._id } },
-      { new: true }
-    );
+    // await capacityModel.findByIdAndUpdate(
+    //   { _id: productInfo[0].capacityId },
+    //   { $pull: { productId: productInfo[0]._id } },
+    //   { new: true }
+    // );
+
+    await capacityModel.bulkWrite([
+      {
+        updateOne: {
+          filter: { _id: capacityId },
+          update: { $push: { productId: productInfo[0]._id } },
+        },
+      },
+      {
+        updateOne: {
+          filter: { _id: productInfo[0].capacityId },
+          update: { $pull: { productId: productInfo[0]._id } },
+        },
+      },
+    ]);
   }
 
   if (productInfo[0].categoryId) {
@@ -716,7 +731,6 @@ module.exports = {
   handleEditProduct,
   handleDestroyProduct,
 };
-
 
 // const productId = "67da621c59fe762ac9a2462f";
 

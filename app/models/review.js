@@ -1,11 +1,18 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
-
+ 
 const reviewSchema = new Schema(
   {
-    rating: {
+    uname: {
       type: String,
+      required: true, 
+    },
+    rating: {
+      type: Number,
       required: true,
+    },
+    photo: {
+      type: String,
     },
     comment: {
       type: String,
@@ -16,10 +23,9 @@ const reviewSchema = new Schema(
       ref: "Product",
       required: true,
     },
-    userId: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
+    reviewStatus: {
+      type: String,
+      default: "inactive",
     },
   },
   {
