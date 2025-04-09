@@ -6,19 +6,20 @@ const customerSchema = new Schema(
     phone: {
       type: String,
       required: true,
-      unique: true,
     },
     uname: {
       type: String,
-      default: 'User',
+      required: true,
     },
-    email: {
+    myId: {
       type: String,
     },
-    photo: {
-      type: String,
-      default: 'user.jpg',
+    photo: String,
+    phoneVerified: {
+      type: Boolean,
+      default: false,
     },
+    otpToken: String,
   },
   {
     timestamps: true,

@@ -1,254 +1,212 @@
 const customerModel = require("../../models/customer");
-const fs = require("fs");
-
-const handleAllCustomer = async (req, res) => {
-  const allCustomers = await customerModel.find(
-    {},
-    {
-      createdAt: 0,
-      updatedAt: 0,
-    }
-  );
-
-  if (allCustomers.length > 0) {
-    return res.send({
-      success: {
-        message: "Data Fetch Successfull.",
-        data: allCustomers,
-      },
-    });
-  } else {
-    return res.send({
-      error: {
-        message: "Failed to fetch Data",
-      },
-    });
-  }
-};
+const axios = require("axios");
+const fs = require("node:fs");
+const path = require("node:path");
 
 const handleStoreCustomer = async (req, res) => {
-  const { uname, email, phone, date, subcontinents, description } = req.body;
-  const duplicateEmail = await customerModel.find({ email });
+  const { uname, phone } = req.body;
+  const duplicatePhone = await customerModel.find({ phone });
 
-  if (duplicateEmail.length == 0) {
+  function generateOTP() {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  }
+
+  const otp = generateOTP();
+
+  if (duplicatePhone.length == 0) {
     try {
-      if (req.imgURL) {
-        const customer = new customerModel({
-          uname,
-          email,
-          phone,
-          date,
-          subcontinents,
-          imageURL: req.imgURL,
-          description,
+      let options = {
+        method: "POST",
+        url: "https://api.sms.net.bd/sendsms",
+        data: {
+          api_key: "YFLJ8Nxpe2j6TYmFPyKRB1u9t7uSi8YUvO4nwd42",
+          msg: `Your Seoumi SMS Verification Code is:${otp}`,
+          to: `${phone}`,
+        },
+      };
+
+      axios(options)
+        .then((response) => {
+          console.log(response.data);
+        })
+        .catch((error) => {
+          console.error(error);
         });
 
-        await customer.save();
+      const customer = new customerModel({
+        phone,
+        uname,
+        myId: "",
+        photo: "",
+        phoneVerified: false,
+        otpToken: otp,
+      });
 
-        return res.send({
-          success: {
-            message: "Data Add Successfull.",
-          },
-        });
-      } else {
-        const customer = new customerModel({
-          uname,
-          email,
-          phone,
-          date,
-          subcontinents,
-          description,
-        });
+      await customer.save();
 
-        await customer.save();
-
-        return res.send({
-          success: {
-            message: "Data Add Successfull.",
-          },
-        });
-      }
+      return res.send({
+        success: {
+          message: "Data Add Successfull.",
+        },
+      });
     } catch (error) {
-      if (error.name === "ValidationError") {
-        // Log detailed validation error
-
-        if (req.imgURL) {
-          const filePath = "./public/images/" + req.imgURL;
-          fs.unlinkSync(filePath);
-        }
-
-        for (const field in error.errors) {
-          return res.send({
-            error: {
-              field: `${field}`,
-              message: `${error.errors[field].message}`,
-            },
-          });
-        }
-      } else {
-        // Handle other types of errors
-        return res.send({
-          error: {
-            message: `${error.message}`,
-          },
-        });
-      }
+      return res.send({
+        error: {
+          message: `${error.message}`,
+        },
+      });
     }
   } else {
     return res.send({
       error: {
-        message: "This email address is already registered.",
+        message: "This Phone Number is already registered.",
       },
     });
   }
 };
 
-const handleEditCustomer = async (req, res) => {
-  const id = req.params.id;
+const handleVerifyCustomer = async (req, res) => {
+  const { phone, otpCode } = req.body;
+  const duplicatePhone = await customerModel.find({ phone });
 
-  try {
-    const editCustomer = await customerModel.find({ _id: id });
-    return res.send({
-      success: {
-        message: "Data details retrieved successfully.",
-        data: editCustomer,
-      },
-    });
-  } catch (err) {
+  if (duplicatePhone.length !== 0 && duplicatePhone[0].otpToken === otpCode) {
+    try {
+      let userInfo = await customerModel.findOneAndUpdate(
+        { phone: phone, otpToken: otpCode },
+        {
+          phoneVerified: true,
+          otpToken: "",
+        },
+        { new: true }
+      );
+
+      const encodedData = JSON.stringify(userInfo);
+      const base64Encoded = btoa(encodedData);
+
+      return res.send({
+        success: {
+          message: "Data verify Successfull.",
+          data: base64Encoded,
+        },
+      });
+    } catch (error) {
+      return res.send({
+        error: {
+          message: `${error.message}`,
+        },
+      });
+    }
+  } else {
     return res.send({
       error: {
-        message: "The requested data does not exist in our records.",
+        message: "There was an server-side Error.",
+      },
+    });
+  }
+};
+
+const handleLoginCustomer = async (req, res) => {
+  const { phone } = req.body;
+  const duplicatePhone = await customerModel.find({ phone });
+
+  if (duplicatePhone.length == 1 && duplicatePhone[0].phoneVerified === true) {
+    try {
+      const encodedData = JSON.stringify(duplicatePhone[0]);
+      const base64Encoded = btoa(encodedData);
+
+      return res.send({
+        success: {
+          message: "User Login Successfull.",
+          data: base64Encoded,
+        },
+      });
+    } catch (error) {
+      return res.send({
+        error: {
+          message: `${error.message}`,
+        },
+      });
+    }
+  } else {
+    return res.send({
+      error: {
+        message: "There was an server-side Error.",
       },
     });
   }
 };
 
 const handleUpdateCustomer = async (req, res) => {
-  const { id, uname, phone, date, subcontinents, description, imageObj } =
-    req.body;
-  const findID = await customerModel.find({ _id: id });
+  const { phone, uname, myId, photo } = req.body;
+  const findID = await customerModel.find({ phone: phone });
+  function fileNameGenerate(originalname) {
+    const fileExt = path.extname(originalname);
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    const fileName =
+      originalname.replace(fileExt, "").toLowerCase().split(" ").join("-") +
+      "-";
 
-  if (findID.length > 0) {
-    try {
-      if (req.imgURL) {
-        await customerModel.findOneAndUpdate(
-          { _id: id },
-          {
-            uname,
-            phone,
-            date,
-            subcontinents,
-            imageURL: req.imgURL,
-            description,
-          },
-          { new: true, runValidators: true }
-        );
+    const imageName = fileName + uniqueSuffix + fileExt;
+    return imageName;
+  }
 
-        const filePath = "./public/images/" + imageObj[2];
+  function base64ToFile(base64Data, filePath) {
+    const base64DataWithoutHeader = base64Data.replace(
+      /^data:image\/\w+;base64,/,
+      ""
+    );
+    const buffer = Buffer.from(base64DataWithoutHeader, "base64");
+    fs.writeFileSync(filePath, buffer);
+
+    return filePath;
+  }
+
+  if (findID.length === 1) {
+    let imageURL = "";
+
+    if (photo.imageName !== "") {
+      if (findID[0].photo !== "") {
+        let filePath = "./public/images/" + findID[0].photo;
         fs.unlinkSync(filePath);
-
-        return res.send({
-          success: {
-            message: "Data Update Successfull.",
-          },
-        });
-      } else {
-        await customerModel.findOneAndUpdate(
-          { _id: id },
-          {
-            uname,
-            phone,
-            date,
-            subcontinents,
-            description,
-          },
-          { new: true, runValidators: true }
-        );
-
-        return res.send({
-          success: {
-            message: "Data Update Successfull.",
-          },
-        });
       }
-    } catch (error) {
-      if (error.name === "ValidationError") {
-        // Log detailed validation error
 
-        if (req.imgURL) {
-          const filePath = "./public/images/" + req.imgURL;
-          fs.unlinkSync(filePath);
-        }
+      let imageFileCreate = fileNameGenerate(photo.imageName);
+      const filePathImage = `./public/images/${imageFileCreate}`;
+      base64ToFile(photo.imageBase64Data, filePathImage);
 
-        for (const field in error.errors) {
-          return res.send({
-            error: {
-              field: `${field}`,
-              message: `${error.errors[field].message}`,
-            },
-          });
-        }
-      } else {
-        // Handle other types of errors
-        return res.send({
-          error: {
-            message: `${error.message}`,
-          },
-        });
-      }
+      imageURL = imageFileCreate;
+    } else {
+      imageURL = findID[0].photo;
     }
+
+    let userUpdate = await customerModel.findOneAndUpdate(
+      { phone: phone },
+      {
+        uname,
+        myId,
+        photo: imageURL,
+      },
+      { new: true }
+    );
+
+    return res.send({
+      success: {
+        message: "Data Update Successfull.",
+        data: userUpdate,
+      },
+    });
   } else {
     return res.send({
       error: {
-        message: "The requested data does not exist in our records.",
+        message: "There was an server-side Error.",
       },
     });
   }
 };
 
-const handleDestroyCustomer = async (req, res) => {
-  const { _id, imgURL } = req.body;
-
-  if (imgURL) {
-    const filePath = "./public/images/" + imgURL;
-    fs.unlinkSync(filePath);
-
-    try {
-      await customerModel.findByIdAndDelete({ _id: _id });
-      return res.send({
-        success: {
-          message: "Data deleted successfully!",
-        },
-      });
-    } catch (err) {
-      return res.send({
-        error: {
-          message: "Failed to delete. Please try again.",
-        },
-      });
-    }
-  } else {
-    try {
-      await customerModel.findByIdAndDelete({ _id: _id });
-      return res.send({
-        success: {
-          message: "Data deleted successfully!",
-        },
-      });
-    } catch (err) {
-      return res.send({
-        error: {
-          message: "Failed to delete. Please try again.",
-        },
-      });
-    }
-  }
-};
-
 module.exports = {
-  handleAllCustomer,
   handleStoreCustomer,
-  handleEditCustomer,
+  handleVerifyCustomer,
+  handleLoginCustomer,
   handleUpdateCustomer,
-  handleDestroyCustomer,
 };
