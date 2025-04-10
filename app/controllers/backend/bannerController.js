@@ -27,6 +27,25 @@ const handleAllBanner = async (req, res) => {
   }
 };
 
+const handleActiveBanner = async (req, res) => {
+  const allBanner = await bannerModel.find({ bannerStatus: "active" });
+
+  if (allBanner.length > 0) {
+    return res.send({
+      success: {
+        message: "Data Fetch Successfull.",
+        data: allBanner,
+      },
+    });
+  } else {
+    return res.send({
+      error: {
+        message: "Failed to fetch Data",
+      },
+    });
+  }
+};
+
 const handleStoreBanner = async (req, res) => {
   const { bannerTitle, bannerDesc, brandLogo } = req.body;
 
@@ -135,6 +154,7 @@ const handleDestroyBanner = async (req, res) => {
 
 module.exports = {
   handleAllBanner,
+  handleActiveBanner,
   handleStoreBanner,
   handleStatusBanner,
   handleDestroyBanner,
