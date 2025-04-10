@@ -12,6 +12,7 @@ const orderRoutes = require("./order");
 const couponRoutes = require("./coupon");
 const testimonialRoutes = require("./testimonial");
 const reviewRoutes = require("./review");
+const bannerRoutes = require("./banner");
 
 _.use("/authentication", authenticationRoutes);
 _.use("/customer", customerRoutes);
@@ -25,6 +26,7 @@ _.use("/order", orderRoutes);
 _.use("/coupon", couponRoutes);
 _.use("/testimonial", testimonialRoutes);
 _.use("/review", reviewRoutes);
+_.use("/banner", bannerRoutes);
 
 module.exports = _;
 
